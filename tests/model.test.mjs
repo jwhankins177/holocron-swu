@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {parseCollection,exportCollection,mergeCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup} from '../lib/model.ts';
+const catalog=JSON.parse(readFileSync(new URL('../public/catalog.json',import.meta.url)));
+const byId=new Map(catalog.cards.map(c=>[c.id,c]));
+test('CSV roundtrip retains foil, alternate printing, unknown card, and quantities',()=>{const input='\uFEFFSet,CardNumber,Count,IsFoil\r\nSOR,5,2,FALSE\r\nSOR,005,1,TRUE\r\nJTL,320,3,FALSE\r\nXYZ,999,1,FALSE';const rows=parseCollection(input);assert.equal(rows[0].id,'SOR_005');assert.deepEqual(parseCollection(exportCollection(rows)),rows);assert.equal(mergeCollection(rows,rows)[0].count,4)});
+test('Invalid imports fail before mutation',()=>{for(const s of ['Set,CardNumber,Count,IsFoil\nSOR,005,-1,FALSE','Set,CardNumber,Count,IsFoil\nSOR,005,3,maybe','Set,CardNumber,Count,IsFoil\nSOR,005,3.5,FALSE'])assert.throws(()=>parseCollection(s))});
+const raw={metadata:{name:'Validation fixture',author:'Test'},leader:{id:'SOR_005',count:1},base:{id:'SOR_025',count:1},deck:[{id:'SOR_095',count:3},{id:'SOR_102',count:2}],sideboard:[{id:'SOR_095',count:1}]};
+test('Native SWUDB JSON roundtrip is exact',()=>{assert.deepEqual(deckExport(parseDeck(JSON.stringify(raw))),raw)});
+test('Copy limit aggregates main and sideboard',()=>{assert.ok(deckWarnings(parseDeck(JSON.stringify(raw)),byId).some(x=>x.includes('4 copies')))});
+test('Aspect multiplicity is counted, and extra available aspects do not reduce penalties',()=>{const c={aspects:['Command','Command','Heroism']};assert.equal(aspectPenalty(c,{aspects:['Command','Heroism']},{aspects:['Vigilance']}),2);assert.equal(aspectPenalty(c,{aspects:['Command','Heroism']},{aspects:['Command']}),0)});
+test('Hypergeometric probability handles exact and empty cases',()=>{assert.equal(probability(50,0,6),0);assert.equal(probability(50,3,0),0);assert.equal(probability(50,3,50),1);assert.ok(Math.abs(probability(50,3,6)-0.3242857142857143)<.00001)});
+test('Full backups restore unfinished decks',()=>{const d={uid:'a',name:'Work in progress',author:'Jonathon',leader:'',base:'',deck:[],sideboard:[],notes:'test'};const r=validateBackup({collection:[],decks:[d]});assert.equal(r.decks[0].leader,'');assert.equal(r.decks[0].notes,'test')});
+test('Catalog identifiers unique and canonical references valid',()=>{assert.equal(byId.size,catalog.cards.length);for(const c of catalog.cards){assert.ok(byId.has(c.canonical),c.id);assert.ok(c.image.startsWith('https://'),c.id)}assert.equal(byId.get('SOR_005').name,'Luke Skywalker');assert.equal(byId.get('JTL_009').name,'Boba Fett');assert.equal(byId.get('HMW_018').type,'Leader')});
+test('ForceTable transport survives base64 and JSON conversion',()=>{const s=JSON.stringify(raw);const encoded=encodeURIComponent(Buffer.from(s,'ascii').toString('base64'));assert.deepEqual(JSON.parse(Buffer.from(decodeURIComponent(encoded),'base64').toString()),raw)});
