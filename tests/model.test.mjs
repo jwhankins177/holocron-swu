@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {parseCollection,exportCollection,mergeCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup} from '../lib/model.ts';
+import {parseCollection,exportCollection,mergeCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup,createBackup} from '../lib/model.ts';
 const catalog=JSON.parse(readFileSync(new URL('../public/catalog.json',import.meta.url)));
 const byId=new Map(catalog.cards.map(c=>[c.id,c]));
 test('CSV roundtrip retains foil, alternate printing, unknown card, and quantities',()=>{const input='\uFEFFSet,CardNumber,Count,IsFoil\r\nSOR,5,2,FALSE\r\nSOR,005,1,TRUE\r\nJTL,320,3,FALSE\r\nXYZ,999,1,FALSE';const rows=parseCollection(input);assert.equal(rows[0].id,'SOR_005');assert.deepEqual(parseCollection(exportCollection(rows)),rows);assert.equal(mergeCollection(rows,rows)[0].count,4)});
@@ -14,3 +14,15 @@ test('Hypergeometric probability handles exact and empty cases',()=>{assert.equa
 test('Full backups restore unfinished decks',()=>{const d={uid:'a',name:'Work in progress',author:'Jonathon',leader:'',base:'',deck:[],sideboard:[],notes:'test'};const r=validateBackup({collection:[],decks:[d]});assert.equal(r.decks[0].leader,'');assert.equal(r.decks[0].notes,'test')});
 test('Catalog identifiers unique and canonical references valid',()=>{assert.equal(byId.size,catalog.cards.length);for(const c of catalog.cards){assert.ok(byId.has(c.canonical),c.id);assert.ok(c.image.startsWith('https://'),c.id)}assert.equal(byId.get('SOR_005').name,'Luke Skywalker');assert.equal(byId.get('JTL_009').name,'Boba Fett');assert.equal(byId.get('HMW_018').type,'Leader')});
 test('ForceTable transport survives base64 and JSON conversion',()=>{const s=JSON.stringify(raw);const encoded=encodeURIComponent(Buffer.from(s,'ascii').toString('base64'));assert.deepEqual(JSON.parse(Buffer.from(decodeURIComponent(encoded),'base64').toString()),raw)});
+
+test('Full backup filename counts copies including foils, uses local date/time, and restores exactly',()=>{
+ const workspace={collection:[{id:'SOR_005',foil:false,count:3},{id:'SOR_005',foil:true,count:2}],decks:[{uid:'deck-1',name:'My deck',author:'Jonathon',leader:'SOR_005',base:'SOR_025',deck:[{id:'SOR_095',count:3}],sideboard:[{id:'SOR_102',count:1}],notes:'Preserve these notes'},{uid:'deck-2',name:'Unfinished',author:'',leader:'',base:'',deck:[],sideboard:[],notes:''}]};
+ const time=new Date(2026,10,3,18,4,9),backup=createBackup(workspace,time);
+ assert.equal(backup.name,'Holocron_Backup_5-cards_2026-11-03_18-04-09.json');
+ const parsed=JSON.parse(backup.text);assert.equal(parsed.format,'holocron-backup-v1');assert.equal(parsed.exported,time.toISOString());assert.deepEqual(validateBackup(parsed.data),workspace);
+ assert.equal(createBackup({collection:[],decks:[]},time).name,'Holocron_Backup_0-cards_2026-11-03_18-04-09.json');
+});
+test('Full backup rejects duplicate deck IDs before replacing data',()=>{
+ const deck={uid:'same',name:'Deck',author:'',leader:'',base:'',deck:[],sideboard:[],notes:''};
+ assert.throws(()=>validateBackup({collection:[],decks:[deck,deck]}),/duplicate deck ID/);
+});
