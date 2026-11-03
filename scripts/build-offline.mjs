@@ -1,0 +1,22 @@
+import {readFile,writeFile,mkdir,copyFile,readdir} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {build} from 'vite';
+const catalog=JSON.parse(await readFile('public/catalog.json','utf8'));
+const urls=[...new Set(catalog.cards.flatMap(c=>[c.image,c.back]).filter(Boolean))];
+const file=u=>createHash('sha256').update(u).digest('hex')+'.img';
+await mkdir('offline/art',{recursive:true});
+const known=new Set(await readdir('offline/art'));
+let done=0,missing=[];
+async function worker(){while(urls.length){const u=urls.pop(),name=file(u);if(!known.has(name)){try{const r=await fetch(u,{signal:AbortSignal.timeout(30000)});if(!r.ok||!r.headers.get('content-type')?.startsWith('image/'))throw Error('HTTP '+r.status);await writeFile('offline/art/'+name,new Uint8Array(await r.arrayBuffer()))}catch(e){missing.push({url:u,error:e.message});continue}}done++;if(done%250===0)console.log(`${done} images ready`)}}
+await Promise.all(Array.from({length:12},worker));
+await writeFile('offline/art-report.json',JSON.stringify({ready:done,missing},null,2));
+if(missing.length&&!process.argv.includes('--allow-missing-art'))throw Error(`${missing.length} images unavailable. See offline/art-report.json. Re-run to resume. An incomplete build requires --allow-missing-art.`);
+for(const c of catalog.cards)for(const k of ['image','back'])if(c[k])c[k]='./art/'+file(c[k]);
+await writeFile('offline/catalog.json',JSON.stringify(catalog));
+const css=(await readFile('app/globals.css','utf8')).replace(/^@import url\([^\n]+\);\s*/,'');
+await writeFile('offline/offline.css',css+'\nbody{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}\n');
+await build({configFile:'offline/vite.config.mjs'});
+await mkdir('native/ios/Holocron/Web/art',{recursive:true});
+for(const name of await readdir('offline/art'))await copyFile('offline/art/'+name,'native/ios/Holocron/Web/art/'+name);
+await copyFile('offline/art-report.json','native/ios/Holocron/Web/art-report.json');
+console.log(`Offline bundle ready: ${done} art files; ${missing.length} unavailable. No network required for bundled UI/catalog/art.`);

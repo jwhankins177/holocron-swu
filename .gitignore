@@ -45,3 +45,11 @@ yarn-error.log*
 .DS_Store
 
 data/catalog-report.json
+
+# Reproducible Apple bundles and downloaded card artwork
+/offline/art/
+/offline/catalog.json
+/offline/offline.css
+/offline/art-report.json
+/native/ios/Holocron/Web/
+/native/ios/*.xcodeproj/
