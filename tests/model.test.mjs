@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {parseCollection,exportCollection,mergeCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup,createBackup} from '../lib/model.ts';
+import {parseCollection,exportCollection,mergeCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup,createBackup,toggleFavorite} from '../lib/model.ts';
 const catalog=JSON.parse(readFileSync(new URL('../public/catalog.json',import.meta.url)));
 const byId=new Map(catalog.cards.map(c=>[c.id,c]));
 test('CSV roundtrip retains foil, alternate printing, unknown card, and quantities',()=>{const input='\uFEFFSet,CardNumber,Count,IsFoil\r\nSOR,5,2,FALSE\r\nSOR,005,1,TRUE\r\nJTL,320,3,FALSE\r\nXYZ,999,1,FALSE';const rows=parseCollection(input);assert.equal(rows[0].id,'SOR_005');assert.deepEqual(parseCollection(exportCollection(rows)),rows);assert.equal(mergeCollection(rows,rows)[0].count,4)});
@@ -25,4 +25,19 @@ test('Full backup filename counts copies including foils, uses local date/time, 
 test('Full backup rejects duplicate deck IDs before replacing data',()=>{
  const deck={uid:'same',name:'Deck',author:'',leader:'',base:'',deck:[],sideboard:[],notes:''};
  assert.throws(()=>validateBackup({collection:[],decks:[deck,deck]}),/duplicate deck ID/);
+});
+
+test('Favorites toggle in one operation without changing ownership or decks',()=>{
+ const original={collection:[{id:'SOR_005',foil:false,count:2}],decks:[]};
+ const starred=toggleFavorite(original,'cards','SOR_005');
+ assert.deepEqual(starred.favorites,{cards:['SOR_005'],decks:[]});
+ assert.equal(starred.collection,original.collection);assert.equal(starred.decks,original.decks);assert.equal(original.favorites,undefined);
+ assert.deepEqual(toggleFavorite(starred,'cards','SOR_005').favorites.cards,[]);
+});
+test('Full backups preserve card and deck favorites, including unknown card IDs',()=>{
+ const deck={uid:'deck-1',name:'Favorite deck',author:'',leader:'',base:'',deck:[],sideboard:[],notes:'Keep'};
+ const state={collection:[],decks:[deck],favorites:{cards:['SOR_005','XYZ_999'],decks:['deck-1']}};
+ assert.deepEqual(validateBackup(JSON.parse(createBackup(state).text).data),state);
+ assert.deepEqual(validateBackup({collection:[],decks:[]}),{collection:[],decks:[]});
+ assert.throws(()=>validateBackup({...state,favorites:{cards:[42],decks:[]}}),/favorite/);
 });
