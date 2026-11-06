@@ -57,3 +57,7 @@
 [data-theme=dark] :is(.error-banner,.resolver-error){background:#452c29;color:#ffd2c7;border-color:#80514b}
 [data-theme=dark] :is(.unresolved,.warning){background:#3c3020;color:#f0ce91;border-color:#695736}
 [data-theme=dark] .favorite-button.is-favorite{background:#4a3d22;color:#f6d38a}
+.site-version{display:inline-block;margin-top:6px;padding:3px 7px;border:1px solid var(--line);border-radius:4px;font-size:11px!important;font-weight:700;letter-spacing:.02em!important}
+.update-notice{border-color:#668d73;gap:14px}
+.update-notice span{flex:1}
+.update-notice button{font-weight:700}
