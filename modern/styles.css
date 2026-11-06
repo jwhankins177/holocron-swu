@@ -139,3 +139,26 @@ dialog.modal-layer::backdrop{background:transparent}
 .cards-across output{min-width:2.5em;font-variant-numeric:tabular-nums}
 .card-grid .card-info footer{flex-wrap:wrap}
 .card-grid .card-code{min-width:0;overflow-wrap:anywhere}
+
+/* Keep controls readable and allow rows to wrap before they collide. */
+.brand .site-version{font-size:11px;letter-spacing:.025em;font-variant-numeric:tabular-nums}
+.sync,.header-presets summary{font-size:12px}
+.page-heading p{font-size:13px;line-height:1.5}
+.section-line,.deck-tabs{flex-wrap:wrap;gap:10px}
+.section-line h2 span{font-size:11px}
+.filter-bottom,.filter-bottom select,.filter-row select,.filter-row>button,.deck-tabs select{font-size:12px}
+.filter-bottom,.filter-bottom>div,.deck-tabs>div{flex-wrap:wrap;gap:8px 12px;min-width:0}
+.filter-bottom{color:var(--muted)}
+.filter-bottom select{color:var(--ink)}
+.filter-bottom>div:last-child{margin-inline-start:0}
+.cards-across output{min-width:3ch;text-align:end}
+.card-info p,.card-code{font-size:11px}
+.card-info>div:first-child{flex-wrap:wrap}
+.card-info footer button{font-size:11px}
+@media(max-width:700px){
+ .workspace-navigation nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+ .workspace-navigation nav button{flex-direction:row;justify-content:center;white-space:normal;font-size:11px;min-height:38px}
+ .workspace-tools{justify-content:flex-start}
+ .deck-tabs button{font-size:12px}
+ .filter-row .search input{font-size:16px}
+}

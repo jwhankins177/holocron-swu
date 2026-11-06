@@ -2,7 +2,7 @@
 import GuidedDeck from './GuidedDeck';
 import CollectionResolver from './components/collection-resolver';
 import {readResolutionCache,writeResolutionCache} from './lib/resolution-cache';
-import {APP_VERSION} from './lib/version';
+import {APP_BUILD,APP_VERSION} from './lib/version';
 import Modal from './components/modal';
 import Guides from './components/guides';
 import FavoriteButton from './components/favorite-button';
@@ -15,7 +15,7 @@ import {Box,Layers,Library,Search,Upload,Download,Plus,ArrowUpRight,Grid2X2,List
 import {Card,Catalog,Deck,Owned,Workspace,emptyWorkspace,parseCollection,mergeCollection,exportCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup,makeId,createBackup,toggleFavorite,matchesAspects,deckMembership,CollectionResolution,effectiveCollection,unresolvedCollection,setCollectionResolution,parseCollectionImport,applyCollectionImport,adjustEffectiveOwned} from './lib/model';
 const colors:Record<string,string>={Vigilance:'#497db8',Command:'#44876c',Aggression:'#c95d51',Cunning:'#c29a39',Heroism:'#d9d7c9',Villainy:'#454a4c'};
 const aspects=Object.keys(colors);
-const siteVersion=`${APP_VERSION} · private`;
+const siteVersion=`v${APP_VERSION} · private`;
 function aspectGroup(card:Card){
  return [...card.aspects].sort().join(' / ')||'Neutral';
 }
@@ -41,7 +41,7 @@ export default function Home(){
  const [resolvingId,setResolvingId]=useState<string|null>(null);
  const [deckListView,setDeckListView]=useState<'images'|'rows'>('images');
  const [updateAvailable,setUpdateAvailable]=useState(false);
- useEffect(()=>{let disposed=false;const check=()=>{if(document.visibilityState==='hidden')return;fetch('/api/version?ts='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json() as Promise<{version:number}>:null).then(data=>{if(!disposed&&typeof data?.version==='number'&&data.version>APP_VERSION)setUpdateAvailable(true)}).catch(()=>{})};check();const id=setInterval(check,60000);document.addEventListener('visibilitychange',check);return()=>{disposed=true;clearInterval(id);document.removeEventListener('visibilitychange',check)}},[]);
+ useEffect(()=>{let disposed=false;const check=()=>{if(document.visibilityState==='hidden')return;fetch('/api/version?ts='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json() as Promise<{version:number}>:null).then(data=>{if(!disposed&&typeof data?.version==='number'&&data.version>APP_BUILD)setUpdateAvailable(true)}).catch(()=>{})};check();const id=setInterval(check,60000);document.addEventListener('visibilitychange',check);return()=>{disposed=true;clearInterval(id);document.removeEventListener('visibilitychange',check)}},[]);
  const localKey=useRef('');
  const revision=useRef<number|string>(0),pending=useRef<Workspace|null>(null),saving=useRef(false),blocked=useRef(false),timer=useRef<any>(null),current=useRef(workspace);
  useEffect(()=>{fetch('/catalog.json').then(r=>{if(!r.ok)throw Error('Could not load catalog');return r.json() as Promise<Catalog>}).then(setCatalog).catch(e=>setError(e.message));nativeLoad().then(d=>new Response(JSON.stringify(d))).then(async r=>{const d:any=await r.json();if(!r.ok)throw Error(d.error||'Unable to load collection');return d}).then(d=>{localKey.current=d.localKey||'';let data=validateBackup(d.data);let recovered=false;
@@ -149,7 +149,7 @@ export default function Home(){
  const personalLinks=<><button className={tab==='favorites'?'selected':''} aria-current={tab==='favorites'?'page':undefined} onClick={()=>nav('favorites')}><Star size={19}/>Favorites</button>
   <button className={tab==='lists'?'selected':''} aria-current={tab==='lists'?'page':undefined} onClick={()=>nav('lists')}><List size={19}/>My lists<span>{lists.length}</span></button></>;
  return <div className="shell" data-rarity-borders={rarityBorders||undefined}><header className="workspace-header">
-  <div className="workspace-navigation"><button className="brand" aria-label="Holocron home" onClick={()=>nav('catalog')}><span className="brand-icon"><Box size={26}/></span><span>HOLOCRON<small>STAR WARS · UNLIMITED</small><small className="site-version">Version {siteVersion}</small></span></button><nav aria-label="Workspace"><button className={tab==='collection'?'selected':''} aria-current={tab==='collection'?'page':undefined} onClick={()=>nav('collection')}><Library size={19}/>My collection<span>{count(workspace.collection).toLocaleString()}</span></button><button className={tab==='decks'||tab==='deck'?'selected':''} aria-current={tab==='decks'||tab==='deck'?'page':undefined} onClick={()=>nav('decks')}><Layers size={19}/>My decks<span>{workspace.decks.length}</span></button><button className={tab==='catalog'?'selected':''} aria-current={tab==='catalog'?'page':undefined} onClick={()=>nav('catalog')}><Search size={19}/>Card catalog</button><span className="workspace-mobile-links">{personalLinks}</span><button className={tab==='guides'?'selected':''} aria-current={tab==='guides'?'page':undefined} onClick={()=>nav('guides')}><BookOpen size={19}/>Guides</button></nav></div>
+  <div className="workspace-navigation"><button className="brand" aria-label="Holocron home" onClick={()=>nav('catalog')}><span className="brand-icon"><Box size={26}/></span><span>HOLOCRON<small>STAR WARS · UNLIMITED</small><small className="site-version">{siteVersion}</small></span></button><nav aria-label="Workspace"><button className={tab==='collection'?'selected':''} aria-current={tab==='collection'?'page':undefined} onClick={()=>nav('collection')}><Library size={19}/>My collection<span>{count(workspace.collection).toLocaleString()}</span></button><button className={tab==='decks'||tab==='deck'?'selected':''} aria-current={tab==='decks'||tab==='deck'?'page':undefined} onClick={()=>nav('decks')}><Layers size={19}/>My decks<span>{workspace.decks.length}</span></button><button className={tab==='catalog'?'selected':''} aria-current={tab==='catalog'?'page':undefined} onClick={()=>nav('catalog')}><Search size={19}/>Card catalog</button><span className="workspace-mobile-links">{personalLinks}</span><button className={tab==='guides'?'selected':''} aria-current={tab==='guides'?'page':undefined} onClick={()=>nav('guides')}><BookOpen size={19}/>Guides</button></nav></div>
   <div className="workspace-tools">
    <details className="header-presets">
     <summary>Quick filters</summary>
