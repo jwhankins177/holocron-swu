@@ -1,4 +1,4 @@
-import {useMemo,useState} from 'react';
+import {useEffect,useMemo,useState} from 'react';
 import {aspectPenalty,deckWarnings,probability} from './lib/model';
 import type {Card,Deck} from './lib/model';
 
@@ -38,7 +38,8 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
  const [premier,setPremier] = useState(true);
  const [section,setSection] = useState<Section>('deck');
  const [limit,setLimit] = useState(30);
- const [candidateView,setCandidateView] = useState<'images'|'rows'>('images');
+ const [candidateView,setCandidateView] = useState<'single'|'images'|'rows'>('images');
+ const [singleIndex,setSingleIndex] = useState(0);
  const total = quantity(deck.deck), sideTotal = quantity(deck.sideboard);
  const selected = [...deck.deck,...deck.sideboard];
  const byCore = new Map<string,number>();
@@ -88,6 +89,10 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
    return true;
   }).sort((a,b)=>(choosing?0:(a.cost??99)+aspectPenalty(a,leader,base)-(b.cost??99)-aspectPenalty(b,leader,base))||a.name.localeCompare(b.name));
  },[cards,query,choosing,step,premier,premierIds,ownedOnly,owned,includePenalty,type,arena,cost,leader,base]);
+ useEffect(()=>setSingleIndex(0),[step,query,premier,ownedOnly,includePenalty,type,arena,cost]);
+ const currentIndex=Math.min(singleIndex,Math.max(0,candidates.length-1));
+ const visibleCandidates=candidateView==='single'?candidates.slice(currentIndex,currentIndex+1):candidates.slice(0,limit);
+ const singlePager=()=>candidateView==='single'&&candidates.length>0&&<div className="guided-single-pager" aria-label="Browse cards one at a time"><button disabled={currentIndex===0} onClick={()=>setSingleIndex(currentIndex-1)}>Previous card</button><span>Card {currentIndex+1} of {candidates.length}</span><button disabled={currentIndex>=candidates.length-1} onClick={()=>setSingleIndex(currentIndex+1)}>Next card</button></div>;
 
  function go(next:Step){
   setStep(next);setQuery('');setType('');setArena('');setCost('');setLimit(30);
@@ -168,16 +173,17 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
       </>}
      </div>
      {!choosing&&<p className="muted">Baseline cost adds 2 resources per missing aspect icon. Alternate costs and card effects can differ.</p>}
-     <div className="guided-view-heading"><p>{candidates.length.toLocaleString()} matching cards</p><div className="view-controls" aria-label="Guided card display"><button aria-label="Show guided card images" aria-pressed={candidateView==='images'} className={candidateView==='images'?'active':''} onClick={()=>setCandidateView('images')}>Images</button><button aria-label="Show guided card rows" aria-pressed={candidateView==='rows'} className={candidateView==='rows'?'active':''} onClick={()=>setCandidateView('rows')}>Rows</button></div></div>
-     <ul className={'guided-results '+(candidateView==='images'?'guided-image-results':'')}>
-      {candidates.slice(0,limit).map(card=>{
+     <div className="guided-view-heading"><p>{candidates.length.toLocaleString()} matching cards</p><div className="view-controls" aria-label="Guided card display"><button aria-label="Show one card at a time" aria-pressed={candidateView==='single'} className={candidateView==='single'?'active':''} onClick={()=>{setCandidateView('single');setSingleIndex(0)}}>One at a time</button><button aria-label="Show guided card grid" aria-pressed={candidateView==='images'} className={candidateView==='images'?'active':''} onClick={()=>setCandidateView('images')}>Grid</button><button aria-label="Show guided card rows" aria-pressed={candidateView==='rows'} className={candidateView==='rows'?'active':''} onClick={()=>setCandidateView('rows')}>Rows</button></div></div>
+     {singlePager()}
+     <ul className={'guided-results '+(candidateView!=='rows'?'guided-image-results':'')+(candidateView==='single'?' guided-single-card':'')}>
+      {visibleCandidates.map(card=>{
        const penalty=choosing?0:aspectPenalty(card,leader,base);
        const copies=byCore.get(card.core)??0;
        const ownedCount=owned.get(card.core)??0;
        const isChosen=card.id===deck.leader||card.id===deck.base;
        const unavailable=choosing?isChosen:copies>=3||ownedOnly&&copies>=ownedCount||section==='sideboard'&&sideTotal>=10;
        return <li key={card.id}>
-        {candidateView==='images'&&<button className="guided-result-art" aria-label={'View '+card.name} onClick={()=>onDetail(card)}><img loading="lazy" src={card.image} alt={card.name}/></button>}
+        {candidateView!=='rows'&&<button className="guided-result-art" aria-label={'View '+card.name} onClick={()=>onDetail(card)}><img loading="lazy" src={card.image} alt={card.name}/></button>}
         <div><button className="text-button" onClick={()=>onDetail(card)}><b>{card.name}</b>{card.subtitle&&<small>{card.subtitle}</small>}</button>
          <small>{card.aspects.join(' / ')||'Neutral'} · {card.arena||card.type} · {ownedCount} owned{!choosing?` · ${copies}/3 in deck + sideboard`:''}</small></div>
         {!choosing&&card.cost!==null&&<strong className={penalty?'warning':''}>{card.cost+penalty} cost{penalty>0?` (+${penalty})`:''}</strong>}
@@ -185,8 +191,9 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
        </li>;
       })}
      </ul>
+     {singlePager()}
      <div className="guided-filters">
-      {candidates.length>limit&&<button onClick={()=>setLimit(limit+30)}>Show more cards</button>}
+      {candidateView!=='single'&&candidates.length>limit&&<button onClick={()=>setLimit(limit+30)}>Show more cards</button>}
       <button onClick={onOpenBrowser}>Open full card browser and filters</button>
       {step==='Early plays'&&<button className="primary" onClick={()=>go('Build out')}>Continue to build out</button>}
       {step==='Build out'&&<button className="primary" onClick={()=>go('Review')}>Review deck</button>}
