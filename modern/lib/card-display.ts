@@ -43,7 +43,7 @@ export function compareCards(a: Card, b: Card, rules: SortRule[], owned: Map<str
 export const emptyFilters = {
   q: '', aspect: [] as string[], aspectMode: 'any', type: '', set: '', keyword: '', trait: '',
   rarity: '', finish: '', variant: '', arena: '', ability: '', artist: '',
-  maxCost: '', minPower: '', minHp: '', onlyOwned: false, premierOnly: false, allPrintings: false,
+  maxCost: '', minPower: '', minHp: '', onlyOwned: false, onlyUnowned: false, premierOnly: false, allPrintings: false,
 };
 export type CardFilters = typeof emptyFilters;
 export type QuickFilter = {id: string; name: string; scope: 'collection' | 'catalog'; filters: CardFilters};
@@ -63,7 +63,7 @@ export function validateCardDisplay(settings: Record<string, unknown>) {
     quickFilters.some(preset => !preset || typeof preset.id !== 'string' || typeof preset.name !== 'string' ||
       !preset.name.trim() || preset.name.length > 60 || !['collection', 'catalog'].includes(preset.scope) ||
       !preset.filters || Object.entries(emptyFilters).some(([key, value]) =>
-        key === 'premierOnly' && preset.filters[key] === undefined ? false :
+        (key === 'premierOnly' || key === 'onlyUnowned') && preset.filters[key] === undefined ? false :
         Array.isArray(value) ? !Array.isArray(preset.filters[key]) || preset.filters[key].some((item: unknown) => typeof item !== 'string')
           : typeof preset.filters[key] !== typeof value)) ||
     new Set(quickFilters.map(preset => preset.id)).size !== quickFilters.length)) throw Error('Invalid quick filters');

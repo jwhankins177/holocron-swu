@@ -178,3 +178,8 @@ select{color-scheme:light}
 select option,select optgroup{background-color:#fff;color:var(--ink)}
 [data-theme=dark] select{color-scheme:dark}
 [data-theme=dark] select :is(option,optgroup){background-color:#1c2a25;color:var(--ink)}
+
+.missing-list-tools,.missing-list-tools label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.missing-list-tools{margin:0 0 16px}
+.missing-list-tools :is(input,select){max-width:100%}
+.missing-list-tools small{color:var(--muted)}
