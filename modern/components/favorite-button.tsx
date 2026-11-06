@@ -1,0 +1,2 @@
+import {Star} from 'lucide-react';
+export default function FavoriteButton({active,label,onClick,disabled=false,className=''}:{active:boolean;label:string;onClick:()=>void;disabled?:boolean;className?:string}){return <button type="button" className={'favorite-button '+(active?'is-favorite ':'')+className} aria-label={(active?'Unfavorite ':'Favorite ')+label} title={active?'Remove from favorites':'Add to favorites'} aria-pressed={active} disabled={disabled} onClick={e=>{e.stopPropagation();onClick()}}><Star size={19} fill={active?'currentColor':'none'}/></button>}

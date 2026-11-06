@@ -44,6 +44,10 @@
   "exclude": [
     "node_modules",
     "examples",
+    "modern/main.tsx",
+    "modern/OfflineTools.tsx",
+    "modern/SyncTools.tsx",
+    "modern/lib/sync-client.ts",
     "dist",
     ".vinext",
     ".wrangler",
