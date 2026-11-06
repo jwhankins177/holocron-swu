@@ -22,9 +22,10 @@ type Props = {
  onEdit: (edit:(deck:Deck)=>Deck)=>void;
  onDetail: (card:Card)=>void;
  onExport: ()=>void;
+ onOpenBrowser: ()=>void;
 };
 
-export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDetail,onExport}:Props) {
+export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDetail,onExport,onOpenBrowser}:Props) {
  const leader = byId.get(deck.leader), base = byId.get(deck.base);
  const [step,setStep] = useState<Step>(()=>!leader?'Leader':!base?'Base':deck.deck.length?'Build out':'Early plays');
  const [plan,setPlan] = useState<keyof typeof plans>('Balanced');
@@ -37,6 +38,7 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
  const [premier,setPremier] = useState(true);
  const [section,setSection] = useState<Section>('deck');
  const [limit,setLimit] = useState(30);
+ const [candidateView,setCandidateView] = useState<'images'|'rows'>('images');
  const total = quantity(deck.deck), sideTotal = quantity(deck.sideboard);
  const selected = [...deck.deck,...deck.sideboard];
  const byCore = new Map<string,number>();
@@ -166,8 +168,8 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
       </>}
      </div>
      {!choosing&&<p className="muted">Baseline cost adds 2 resources per missing aspect icon. Alternate costs and card effects can differ.</p>}
-     <p>{candidates.length.toLocaleString()} matching cards</p>
-     <ul className="guided-results">
+     <div className="guided-view-heading"><p>{candidates.length.toLocaleString()} matching cards</p><div className="view-controls" aria-label="Guided card display"><button aria-label="Show guided card images" aria-pressed={candidateView==='images'} className={candidateView==='images'?'active':''} onClick={()=>setCandidateView('images')}>Images</button><button aria-label="Show guided card rows" aria-pressed={candidateView==='rows'} className={candidateView==='rows'?'active':''} onClick={()=>setCandidateView('rows')}>Rows</button></div></div>
+     <ul className={'guided-results '+(candidateView==='images'?'guided-image-results':'')}>
       {candidates.slice(0,limit).map(card=>{
        const penalty=choosing?0:aspectPenalty(card,leader,base);
        const copies=byCore.get(card.core)??0;
@@ -175,6 +177,7 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
        const isChosen=card.id===deck.leader||card.id===deck.base;
        const unavailable=choosing?isChosen:copies>=3||ownedOnly&&copies>=ownedCount||section==='sideboard'&&sideTotal>=10;
        return <li key={card.id}>
+        {candidateView==='images'&&<button className="guided-result-art" aria-label={'View '+card.name} onClick={()=>onDetail(card)}><img loading="lazy" src={card.image} alt={card.name}/></button>}
         <div><button className="text-button" onClick={()=>onDetail(card)}><b>{card.name}</b>{card.subtitle&&<small>{card.subtitle}</small>}</button>
          <small>{card.aspects.join(' / ')||'Neutral'} · {card.arena||card.type} · {ownedCount} owned{!choosing?` · ${copies}/3 in deck + sideboard`:''}</small></div>
         {!choosing&&card.cost!==null&&<strong className={penalty?'warning':''}>{card.cost+penalty} cost{penalty>0?` (+${penalty})`:''}</strong>}
@@ -184,6 +187,7 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
      </ul>
      <div className="guided-filters">
       {candidates.length>limit&&<button onClick={()=>setLimit(limit+30)}>Show more cards</button>}
+      <button onClick={onOpenBrowser}>Open full card browser and filters</button>
       {step==='Early plays'&&<button className="primary" onClick={()=>go('Build out')}>Continue to build out</button>}
       {step==='Build out'&&<button className="primary" onClick={()=>go('Review')}>Review deck</button>}
      </div>
