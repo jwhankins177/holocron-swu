@@ -172,3 +172,9 @@ dialog.modal-layer::backdrop{background:transparent}
 .deck-tile-actions{padding-top:8px}
 .deck-tile-actions select{flex:1}
 .deck-tile-actions .danger{margin-inline-start:auto}
+
+/* Native dropdown popups can paint independently of the closed select. */
+select{color-scheme:light}
+select option,select optgroup{background-color:#fff;color:var(--ink)}
+[data-theme=dark] select{color-scheme:dark}
+[data-theme=dark] select :is(option,optgroup){background-color:#1c2a25;color:var(--ink)}
