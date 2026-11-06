@@ -9,7 +9,8 @@ export type ResolutionPreview={sourceId:string;destinationId:string;source:{norm
 export type Deck={uid:string;name:string;author:string;leader:string;base:string;deck:Entry[];sideboard:Entry[];notes:string};
 export type Favorites={cards:string[];decks:string[]};
 export type CardList={uid:string;name:string;cards:string[]};
-export type Workspace={collection:Owned[];decks:Deck[];favorites?:Favorites;resolutions?:CollectionResolution[];lists?:CardList[];settings?:{theme?:'dark'|'light';view?:'grid'|'table'|'large';size?:number;cardColumns?:number;rarityBorders?:boolean;cardSort?:SortRule[];quickFilters?:QuickFilter[]}};
+export type DeckFolder={uid:string;name:string;deckIds:string[]};
+export type Workspace={collection:Owned[];decks:Deck[];favorites?:Favorites;resolutions?:CollectionResolution[];lists?:CardList[];settings?:{theme?:'dark'|'light';view?:'grid'|'table'|'large';size?:number;cardColumns?:number;deckFolders?:DeckFolder[];rarityBorders?:boolean;cardSort?:SortRule[];quickFilters?:QuickFilter[]}};
 export type Catalog={cards:Card[];sets:{code:string;name:string}[];updated:string;sources:string[]};
 export const emptyWorkspace:Workspace={collection:[],decks:[]};
 export function normalizeId(s:string){const m=s.trim().toUpperCase().match(/^([A-Z0-9]+)[_ -]([A-Z]*\d+[A-Z]*)$/);if(!m)throw Error(`Invalid card ID: ${s}`);return `${m[1]}_${/^\d+$/.test(m[2])?m[2].padStart(3,'0'):m[2]}`}
@@ -161,4 +162,20 @@ export function validateLists(value:any):CardList[]{
 export function matchesAspects(values:string[],selected:string[],mode:string){return !selected.length||(mode==='all'?selected.every(a=>values.includes(a)):selected.some(a=>values.includes(a)))}
 export function deckMembership(card:Card,decks:Deck[],byId:Map<string,Card>){return decks.filter(d=>[d.leader,d.base,...d.deck.map(x=>x.id),...d.sideboard.map(x=>x.id)].some(id=>id===card.id||byId.get(id)?.core===card.core))}
 
-export function validateSettings(x:any){if(!x||typeof x!=='object'||Array.isArray(x))throw Error('Invalid preferences');const out:NonNullable<Workspace['settings']>={};if(x.theme!==undefined){if(!['dark','light'].includes(x.theme))throw Error('Invalid theme');out.theme=x.theme}if(x.view!==undefined){if(!['grid','table','large'].includes(x.view))throw Error('Invalid card view');out.view=x.view}if(x.size!==undefined){if(!Number.isInteger(x.size)||x.size<180||x.size>450)throw Error('Invalid card size');out.size=x.size}if(x.cardColumns!==undefined){if(!Number.isInteger(x.cardColumns)||x.cardColumns<0||x.cardColumns>8)throw Error('Invalid cards across');out.cardColumns=x.cardColumns}return {...out,...validateCardDisplay(x)}}
+function validateDeckFolders(value:unknown):DeckFolder[]{
+ if(!Array.isArray(value)||value.length>500)throw Error('Invalid deck folders');
+ const folders=new Set<string>(),decks=new Set<string>();
+ const validId=(id:unknown):id is string=>typeof id==='string'&&/^[-a-zA-Z0-9_]{1,100}$/.test(id);
+ return value.map(folder=>{
+  if(!folder||!validId(folder.uid)||folders.has(folder.uid)||typeof folder.name!=='string'||!folder.name.trim()||folder.name.length>80||!Array.isArray(folder.deckIds)||folder.deckIds.length>500)throw Error('Invalid deck folder');
+  folders.add(folder.uid);
+  const deckIds=folder.deckIds.map((id:unknown)=>{
+   if(!validId(id)||decks.has(id))throw Error('Invalid deck folder membership');
+   decks.add(id);
+   return id;
+  });
+  return {uid:folder.uid,name:folder.name.trim(),deckIds};
+ });
+}
+
+export function validateSettings(x:any){if(!x||typeof x!=='object'||Array.isArray(x))throw Error('Invalid preferences');const out:NonNullable<Workspace['settings']>={};if(x.theme!==undefined){if(!['dark','light'].includes(x.theme))throw Error('Invalid theme');out.theme=x.theme}if(x.view!==undefined){if(!['grid','table','large'].includes(x.view))throw Error('Invalid card view');out.view=x.view}if(x.size!==undefined){if(!Number.isInteger(x.size)||x.size<180||x.size>450)throw Error('Invalid card size');out.size=x.size}if(x.cardColumns!==undefined){if(!Number.isInteger(x.cardColumns)||x.cardColumns<0||x.cardColumns>8)throw Error('Invalid cards across');out.cardColumns=x.cardColumns}if(x.deckFolders!==undefined)out.deckFolders=validateDeckFolders(x.deckFolders);return {...out,...validateCardDisplay(x)}}

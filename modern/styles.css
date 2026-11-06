@@ -162,3 +162,13 @@ dialog.modal-layer::backdrop{background:transparent}
  .deck-tabs button{font-size:12px}
  .filter-row .search input{font-size:16px}
 }
+
+.deck-folder-tools,.deck-folder-tools form,.deck-folder-tools label,.deck-tile-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.deck-folder-tools{margin-bottom:18px}
+.deck-folder-tools select,.deck-tile-actions select{min-width:0;max-width:100%}
+.deck-folder-tools input{min-width:0;max-width:100%}
+.deck-tile-wrap{display:flex;flex-direction:column}
+.deck-tile-wrap>.deck-tile{height:auto;flex:1}
+.deck-tile-actions{padding-top:8px}
+.deck-tile-actions select{flex:1}
+.deck-tile-actions .danger{margin-inline-start:auto}
