@@ -171,7 +171,6 @@ dialog.modal-layer::backdrop{background:transparent}
 .deck-tile-wrap>.deck-tile{height:auto;flex:1}
 .deck-tile-actions{padding-top:8px}
 .deck-tile-actions select{flex:1}
-.deck-tile-actions .danger{margin-inline-start:auto}
 
 /* Native dropdown popups can paint independently of the closed select. */
 select{color-scheme:light}
@@ -183,3 +182,13 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
 .missing-list-tools{margin:0 0 16px}
 .missing-list-tools :is(input,select){max-width:100%}
 .missing-list-tools small{color:var(--muted)}
+
+.deck-tile-wrap .deck-delete{position:absolute;top:9px;left:9px;z-index:2;padding:6px 8px;font-size:11px}
+.card-info{padding-top:7px}
+.card-info h3{margin-top:4px}
+.card-info footer{gap:4px;margin-top:6px;padding-top:6px}
+.card-info footer button{padding:4px 6px}
+.card-ownership{flex-basis:100%;font-size:11px;color:var(--muted);line-height:1.4}
+.card-info footer .card-deck-action{border-color:var(--teal);color:var(--ink)}
+.card-membership{margin-top:4px;color:var(--muted);font-size:11px}
+.card-membership summary{cursor:pointer}
