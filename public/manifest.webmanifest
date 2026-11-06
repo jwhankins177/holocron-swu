@@ -1,0 +1,14 @@
+{
+  "name": "Holocron · Star Wars Unlimited",
+  "short_name": "Holocron",
+  "description": "Your Star Wars Unlimited collection and deck workshop.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#10231f",
+  "theme_color": "#10231f",
+  "icons": [
+    { "src": "/holocron-icon-v19-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/holocron-icon-v19-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
