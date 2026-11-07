@@ -197,3 +197,13 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
 .card-info .dots>span{width:40px;height:40px;box-shadow:inset 0 0 0 1px #0004}
 [data-theme=dark] .card-info .dots>span{box-shadow:inset 0 0 0 1px #fff5}
 @media(max-width:700px){.card-info .dots>span{width:32px;height:32px}}
+
+.deck-assembly>p{color:var(--muted);margin-bottom:10px}
+.assembly-progress{margin-bottom:18px}
+.assembly-section{margin-bottom:20px}
+.assembly-section h3{margin-bottom:8px}
+.assembly-section td small{display:block;margin-top:3px;color:var(--muted)}
+.assembly-section td input{width:18px;height:18px;accent-color:var(--teal)}
+.assembly-section td:nth-child(2),.assembly-section td:last-child{min-width:125px;white-space:normal}
+.assembly-aspects{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.assembly-aspects .dots:empty{display:none}
