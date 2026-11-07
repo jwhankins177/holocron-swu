@@ -33,16 +33,27 @@ export function parseCollectionImport(text:string):CollectionImport {
  }
  return {collection:mergeCollection([],collection),resolutions:validatedResolutions(resolutions)};
 }
+const quoteCsv=(value:string|number)=>{const s=String(value);return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+export function exportCardList(list:CardList,byId:ReadonlyMap<string,Card>,format:'json'|'csv'){
+ const cards=list.cards.map(id=>{
+  const card=byId.get(id);
+  const [set='',number='']=id.split('_');
+  return {id,name:card?.name??'',subtitle:card?.subtitle??'',set:card?.set??set,number:card?.number??number,variant:card?.variant??''};
+ });
+ if(format==='json')return JSON.stringify({name:list.name,cards},null,2);
+ const rows=cards.map(({id,name,subtitle,set,number,variant})=>[id,name,subtitle,set,number,variant].map(quoteCsv).join(','));
+ return ['Card ID,Name,Subtitle,Set,Card Number,Variant',...rows].join('\r\n')+'\r\n';
+}
+
 export function mergeCollection(a:Owned[],b:Owned[]):Owned[]{const m=new Map<string,Owned>();for(const x of [...a,...b]){const k=x.id+':'+x.foil;m.set(k,{...x,count:(m.get(k)?.count||0)+x.count})}return [...m.values()].filter(x=>x.count>0)}
 export function exportCollection(c:Owned[],resolutions?:CollectionResolution[]){
  const saved=validatedResolutions(resolutions||[]),enriched=saved.length>0,bySource=new Map(saved.map(r=>[r.sourceId,r]));
  // Retain saved decisions even if their final copy was removed. Zero-count rows carry metadata only.
  const sourceIds=new Set(c.map(row=>row.id)),rows=[...c,...saved.filter(r=>!sourceIds.has(r.sourceId)).map(r=>({id:r.sourceId,count:0,foil:false}))];
- const quote=(value:string|number)=>{const s=String(value);return /[",\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
  return 'Set,CardNumber,Count,IsFoil'+(enriched?',ResolutionKind,TargetId,CorrectedId,ResolutionName':'')+'\r\n'+rows.map(x=>{
   const [set,number]=x.id.split('_'),r=bySource.get(x.id);const fields:(string|number)[]=[set,number,x.count,x.foil?'TRUE':'FALSE'];
   if(enriched)fields.push(r?.kind||'',r?.targetId||'',r?.correctedId||'',r?.name||'');
-  return fields.map(quote).join(',');
+  return fields.map(quoteCsv).join(',');
  }).join('\r\n');
 }
 
