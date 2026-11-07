@@ -45,6 +45,21 @@ export function exportCardList(list:CardList,byId:ReadonlyMap<string,Card>,forma
  return ['Card ID,Name,Subtitle,Set,Card Number,Variant',...rows].join('\r\n')+'\r\n';
 }
 
+// SWU collector numbers include the printed set denominator for these releases.
+const collectorTotals:Readonly<Record<string,number>>={SOR:252,SHD:262,TWI:257,JTL:262,LOF:264,SEC:264,LAW:264,ASH:264,HMW:272,IC27:194};
+export function exportMassEntry(list:CardList,byId:ReadonlyMap<string,Card>){
+ const lines:string[]=[],unmatched:string[]=[];
+ for(const id of list.cards){
+  const card=byId.get(id);
+  if(!card?.name){unmatched.push(id);continue}
+  const title=[card.name,card.subtitle].filter(Boolean).join(' - ').replace(/[‘’]/g,"'").replace(/\s+/g,' ').trim();
+  const total=collectorTotals[card.set];
+  const number=total&&/^\d+$/.test(card.number)?card.number+'/'+total:card.number;
+  lines.push(['1',title,card.set?'['+card.set+']':'',number].filter(Boolean).join(' '));
+ }
+ return {text:lines.join('\n'),unmatched};
+}
+
 export function mergeCollection(a:Owned[],b:Owned[]):Owned[]{const m=new Map<string,Owned>();for(const x of [...a,...b]){const k=x.id+':'+x.foil;m.set(k,{...x,count:(m.get(k)?.count||0)+x.count})}return [...m.values()].filter(x=>x.count>0)}
 export function exportCollection(c:Owned[],resolutions?:CollectionResolution[]){
  const saved=validatedResolutions(resolutions||[]),enriched=saved.length>0,bySource=new Map(saved.map(r=>[r.sourceId,r]));

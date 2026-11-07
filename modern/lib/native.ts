@@ -20,14 +20,15 @@ type SavePicker = (options: {
 
 async function saveExport(name: string, data: string) {
  const csv = name.endsWith('.csv');
- const extension = csv ? '.csv' : '.json';
- const type = csv ? 'text/csv' : 'application/json';
+ const plain = name.endsWith('.txt');
+ const extension = csv ? '.csv' : plain ? '.txt' : '.json';
+ const type = csv ? 'text/csv' : plain ? 'text/plain' : 'application/json';
  const file = new File([data],name,{type});
  const picker = (window as Window & {showSaveFilePicker?: SavePicker}).showSaveFilePicker;
  if(picker){
   let handle: FileSystemFileHandle | undefined;
   try{
-   handle=await picker.call(window,{suggestedName:name,types:[{description:csv?'CSV spreadsheet':'JSON file',accept:{[type]:[extension]}}]});
+   handle=await picker.call(window,{suggestedName:name,types:[{description:csv?'CSV spreadsheet':plain?'Text file':'JSON file',accept:{[type]:[extension]}}]});
   }catch(error){
    if(error instanceof DOMException && error.name==='AbortError')return false;
    // Embedded or restricted browser contexts can block the native picker.
