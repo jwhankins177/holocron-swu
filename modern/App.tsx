@@ -39,6 +39,7 @@ export default function Home(){
  const cardColumns = workspace.settings?.cardColumns ?? 0;
  const sort = workspace.settings?.cardSort ?? defaultSort;
  const quickFilters = workspace.settings?.quickFilters ?? defaultQuickFilters;
+ const showDeckMembership = workspace.settings?.showDeckMembership ?? false;
  const rarityBorders = workspace.settings?.rarityBorders ?? false;
  const [presetId,setPresetId] = useState('');
  const [presetName,setPresetName] = useState('');
@@ -69,7 +70,7 @@ export default function Home(){
  function membership(c:Card,compact=false){
   const decks=deckMembership(c,workspace.decks,byId);
   const links=<div className="membership">{decks.map(d=><button key={d.uid} onClick={()=>{nav('deck');setDeckId(d.uid);setDeckView('cards')}}>{d.name}</button>)}</div>;
-  if(compact)return decks.length>0?<details className="card-membership"><summary>In {decks.length} {decks.length===1?'deck':'decks'}</summary>{links}</details>:null;
+  if(compact)return decks.length>0?<details key={String(showDeckMembership)} className="card-membership" open={showDeckMembership}><summary>In {decks.length} {decks.length===1?'deck':'decks'}</summary>{links}</details>:null;
   return decks.length?links:<span className="muted">No decks</span>;
  }
  const [folderFilter,setFolderFilter]=useState('');
@@ -276,7 +277,7 @@ export default function Home(){
      }}><Bookmark size={15}/>{preset.name}</button>) : <span>No saved quick filters</span>}
     </div>
    </details>
-   <div className="sync"><button disabled={!loaded} aria-pressed={rarityBorders} onClick={()=>preferences({rarityBorders:!rarityBorders})}>Rarity borders</button><button aria-label="Toggle dark mode" aria-pressed={theme==='dark'} onClick={()=>preferences({theme:theme==='dark'?'light':'dark'})}>{theme==='dark'?'Light mode':'Dark mode'}</button><HardDrive size={15}/><span>{status}</span>{status==='Unsaved changes'&&<button onClick={()=>void flush()}>Retry</button>}</div></div>
+   <div className="sync"><button disabled={!loaded} aria-pressed={rarityBorders} onClick={()=>preferences({rarityBorders:!rarityBorders})}>Rarity borders</button><button disabled={!loaded} aria-pressed={showDeckMembership} onClick={()=>preferences({showDeckMembership:!showDeckMembership})}>Show decks on cards</button><button aria-label="Toggle dark mode" aria-pressed={theme==='dark'} onClick={()=>preferences({theme:theme==='dark'?'light':'dark'})}>{theme==='dark'?'Light mode':'Dark mode'}</button><HardDrive size={15}/><span>{status}</span>{status==='Unsaved changes'&&<button onClick={()=>void flush()}>Retry</button>}</div></div>
  </header>
  <div className="workspace-body">
  <aside className="workspace-sidebar"><nav aria-label="Lists and favorites">{personalLinks}</nav></aside>
