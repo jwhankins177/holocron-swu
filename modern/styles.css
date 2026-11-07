@@ -223,3 +223,9 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
  .assembly-section th:last-child{width:39px}
  .assembly-aspects .dots>span{width:9px;height:9px}
 }
+
+.guides-area .guide-grid{gap:12px}
+.guides-area .guide-tile{min-height:0;padding:16px;gap:7px}
+.guides-area .guide-tile h3{font-size:16px;overflow-wrap:anywhere}
+.guides-area .guide-read{margin-top:6px}
+.guides-area .guide-reference:hover{text-decoration:underline}
