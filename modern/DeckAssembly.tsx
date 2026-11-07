@@ -54,7 +54,7 @@ export default function DeckAssembly({deck,byId,collection,onBack,aspectIcons}:P
   {sections.filter(section=>section.entries.length>0).map(section=><section className="assembly-section" key={section.name}>
    <h3>{section.name}</h3>
    <div className="table-scroll"><table>
-    <thead><tr><th scope="col">Done</th><th scope="col">Card</th><th scope="col">Need</th><th scope="col">Owned</th><th scope="col">Color</th><th scope="col">Cost</th><th scope="col">Special</th></tr></thead>
+    <thead><tr><th scope="col">Done</th><th scope="col" aria-label="Card image"></th><th scope="col">Card</th><th scope="col">Need</th><th scope="col">Owned</th><th scope="col">Color</th><th scope="col">Cost</th><th scope="col">Special</th></tr></thead>
     <tbody>{section.entries.map(entry=>{
      const key=section.name+':'+entry.id;
      const card=byId.get(entry.id);
@@ -64,6 +64,7 @@ export default function DeckAssembly({deck,byId,collection,onBack,aspectIcons}:P
      return <tr key={key}>
       <td><label className="assembly-check"><input type="checkbox" aria-label={`Pulled ${entry.count} × ${card?.name??entry.id} (${entry.id}) from ${section.name}`} checked={checked.has(key)}
        onChange={event=>{const on=event.target.checked;setChecked(previous=>{const next=new Set(previous);if(on)next.add(key);else next.delete(key);return next})}}/></label></td>
+      <td>{card?.image&&<img className="assembly-thumbnail" src={card.image} alt="" loading="lazy" decoding="async"/>}</td>
       <td><strong>{card?.name??entry.id}</strong><small>{card?card.subtitle:'Catalog match unavailable'}</small></td>
       <td>{entry.count}</td>
       <td>{ownedCopies.get(copyKey)??0}</td>

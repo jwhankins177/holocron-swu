@@ -205,8 +205,10 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
 .assembly-section table{table-layout:fixed;font-size:13px}
 .assembly-section :is(th,td){padding:6px;text-align:center}
 .assembly-section th:first-child{width:48px}
-.assembly-section :is(th,td):nth-child(2){text-align:left;white-space:normal;overflow-wrap:anywhere}
-.assembly-section th:nth-child(n+3){width:52px}
+.assembly-section th:nth-child(2){width:44px}
+.assembly-thumbnail{display:block;width:32px;height:38px;object-fit:contain;margin-inline:auto}
+.assembly-section :is(th,td):nth-child(3){text-align:left;white-space:normal;overflow-wrap:anywhere}
+.assembly-section th:nth-child(n+4){width:52px}
 .assembly-section td small{color:var(--muted);line-height:1.35}
 .assembly-section td:first-child{padding:0}
 .assembly-check{display:grid;place-items:center;min-height:44px;cursor:pointer}
@@ -216,7 +218,8 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
 @media(max-width:600px){
  .assembly-section :is(th,td){padding:4px 2px}
  .assembly-section th:first-child{width:44px}
- .assembly-section th:nth-child(n+3){width:32px}
+ .assembly-section th:nth-child(2){width:36px}
+ .assembly-section th:nth-child(n+4){width:32px}
  .assembly-section th:last-child{width:39px}
  .assembly-aspects .dots>span{width:9px;height:9px}
 }
