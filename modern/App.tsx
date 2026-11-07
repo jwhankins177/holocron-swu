@@ -7,7 +7,7 @@ import Modal from './components/modal';
 import Guides from './components/guides';
 import FavoriteButton from './components/favorite-button';
 import {premierCards} from './lib/premier';
-import {compareCards,defaultQuickFilters,defaultSort,emptyFilters,sortLabels,sortRule} from './lib/card-display';
+import {compareCards,orderedAspects,defaultQuickFilters,defaultSort,emptyFilters,sortLabels,sortRule} from './lib/card-display';
 import type {CardFilters,QuickFilter,SortRule} from './lib/card-display';
 import {nativeAvailable,nativeCall,nativeLoad,nativeSave} from './lib/native';
 import {Fragment,useEffect,useMemo,useRef,useState} from 'react';
@@ -17,7 +17,7 @@ const colors:Record<string,string>={Vigilance:'#497db8',Command:'#44876c',Aggres
 const aspects=Object.keys(colors);
 const siteVersion=`v${APP_VERSION} · private`;
 function aspectGroup(card:Card){
- return [...card.aspects].sort().join(' / ')||'Neutral';
+ return orderedAspects(card.aspects).join(' / ')||'Neutral';
 }
 const count=(a:{count:number}[])=>a.reduce((s,x)=>s+x.count,0);
 const label=(c?:Card)=>c?c.name+(c.subtitle?' · '+c.subtitle:''):'Choose a card';
@@ -25,7 +25,7 @@ async function download(name:string,data:string){
  try{return await nativeCall('export',{name,data})}
  catch(error){alert(error instanceof Error ? error.message : 'Unable to save the file');return false}
 }
-function Dots({values}:{values:string[]}){return <span className="dots">{values.map((a,i)=><span key={a+i} title={a} style={{background:colors[a]||'#aaa'}}/>)}</span>}
+function Dots({values}:{values:string[]}){return <span className="dots">{orderedAspects(values).map((a,i)=><span key={a+i} title={a} style={{background:colors[a]||'#aaa'}}/>)}</span>}
 function Art({card,back=false,onClick}:{card:Card;back?:boolean;onClick?:()=>void}){const [failed,setFailed]=useState(false);useEffect(()=>setFailed(false),[card.id,back]);return <div data-rarity={card.rarity} className={'art '+(['Leader','Base'].includes(card.type)&&!back?'horizontal':'')} onClick={onClick}>{!failed?<span className="art-face"><img loading="lazy" src={back&&card.back?card.back:card.image} alt={label(card)+(back?' — reverse':'')} onError={()=>setFailed(true)}/></span>:<div className="art-fallback"><Box size={28}/><strong>{card.name}</strong><p>{card.text}</p><small>Artwork unavailable · {card.id}</small></div>}</div>}
 export default function Home(){
  const [catalog,setCatalog]=useState<Catalog|null>(null),[workspace,setWorkspace]=useState<Workspace>(emptyWorkspace),[loaded,setLoaded]=useState(false),[status,setStatus]=useState('Connecting'),[error,setError]=useState(''),[favoriteView,setFavoriteView]=useState('cards'),[tab,setTab]=useState('catalog'),[deckId,setDeckId]=useState(''),[deckView,setDeckView]=useState('cards'),[q,setQ]=useState(''),[aspect,setAspect]=useState<string[]>([]),[aspectMode,setAspectMode]=useState('any'),[listId,setListId]=useState(''),[listCard,setListCard]=useState<Card|null>(null),[listName,setListName]=useState(''),[theme,setTheme]=useState(()=>{try{return localStorage.getItem('holocron-theme')||'dark'}catch{return 'dark'}}),[type,setType]=useState(''),[set,setSet]=useState(''),[keyword,setKeyword]=useState(''),[trait,setTrait]=useState(''),[rarity,setRarity]=useState(''),[finish,setFinish]=useState(''),[variant,setVariant]=useState(''),[arena,setArena]=useState(''),[ability,setAbility]=useState(''),[artist,setArtist]=useState(''),[maxCost,setMaxCost]=useState(''),[minPower,setMinPower]=useState(''),[minHp,setMinHp]=useState(''),[onlyOwned,setOnlyOwned]=useState(false),[onlyUnowned,setOnlyUnowned]=useState(false),[premierOnly,setPremierOnly]=useState(false),[allPrintings,setAllPrintings]=useState(false),[view,setView]=useState('grid'),[size,setSize]=useState(240),[advanced,setAdvanced]=useState(false),[limit,setLimit]=useState(48),[detail,setDetail]=useState<Card|null>(null),[flipped,setFlipped]=useState(false),[tileBacks,setTileBacks]=useState<Record<string,boolean>>({}),[modal,setModal]=useState(''),[importText,setImportText]=useState(''),[importType,setImportType]=useState('collection'),[importMode,setImportMode]=useState('replace'),[preview,setPreview]=useState<any>(null),[notice,setNotice]=useState(''),[editName,setEditName]=useState(''),[draws,setDraws]=useState(6),[copies,setCopies]=useState(3),[section,setSection]=useState<'deck'|'sideboard'>('deck');
@@ -164,7 +164,13 @@ export default function Home(){
  function changeSort(index: number, key: string) {
   const next = [...sort];
   if (!key) next.splice(index, 1);
-  else next[index] = sortRule(key as SortRule['key']);
+  else {
+   const other=next.findIndex(rule=>rule.key===key);
+   if(other===index)return;
+   if(other>=0&&next[index]) [next[index],next[other]]=[next[other],next[index]];
+   else if(other>=0)return;
+   else next[index]=sortRule(key as SortRule['key']);
+  }
   preferences({cardSort: next});
  }
  function nav(t:string){setTab(t);resetFilters();setDeckId('')}
@@ -183,6 +189,10 @@ export default function Home(){
  const options=(key:'type'|'rarity'|'variant'|'artist'|'arena')=>[...new Set(cards.map(c=>c[key]).filter(Boolean))].sort();
  const allTraits=useMemo(()=>[...new Set(cards.flatMap(c=>c.traits))].sort(),[catalog]);const allKeywords=useMemo(()=>[...new Set(cards.flatMap(c=>c.keywords))].sort(),[catalog]);
  const warnings=active?deckWarnings(active,byId):[];
+ const deckSectionCards=active?.[section].slice().sort((a,b)=>{
+  const left=byId.get(a.id),right=byId.get(b.id);
+  return left&&right?compareCards(left,right,sort,owned,foils):Number(!left)-Number(!right)||a.id.localeCompare(b.id);
+ })??[];
  const deckTotal=active?count(active.deck):0;
  const required=new Map<string,{id:string;count:number}>();
  if(active){
@@ -302,13 +312,14 @@ export default function Home(){
  {[0,1].map(index=><div key={index}><label>{index===0?'Sort by':'Then by'}
   <select disabled={!loaded} value={sort[index]?.key??''} onChange={event=>changeSort(index,event.target.value)}>
    {index===1&&<option value="">None</option>}
-   {Object.entries(sortLabels).filter(([key])=>key!==sort[1-index]?.key).map(([key,name])=><option key={key} value={key}>{name}</option>)}
+   {Object.entries(sortLabels).filter(([key])=>index===0||!!sort[1]||key!==sort[0].key).map(([key,name])=><option key={key} value={key}>{name}</option>)}
   </select></label>
   {sort[index]&&<select disabled={!loaded} aria-label={index===0?'Primary sort direction':'Secondary sort direction'} value={sort[index].direction}
    onChange={event=>preferences({cardSort:sort.map((rule,i)=>i===index?{...rule,direction:event.target.value as SortRule['direction']}:rule)})}>
    <option value="asc">Ascending</option><option value="desc">Descending</option>
   </select>}
  </div>)}
+ <button type="button" disabled={!loaded} onClick={()=>preferences({cardSort:defaultSort})}>Reset sort</button>
  </div></div></div></div>
  {(tab==='lists'||tab==='catalog'||tab==='collection'||tab==='favorites'&&favoriteView==='cards'||tab==='deck'&&['cards','build'].includes(deckView))&&<details className="quick-editor">
   <summary>Quick filters</summary>
@@ -337,7 +348,7 @@ export default function Home(){
  <div className="card-list-actions">{listButton(c)}{tab==='lists'&&<button aria-label={'Remove '+c.name+' from list'} onClick={()=>update({...current.current,lists:lists.map(l=>l.uid===listId?{...l,cards:l.cards.filter(id=>id!==c.id)}:l)})}>Remove</button>}</div></footer>{membership(c,true)}</div></article>})}</div>}{results.length>limit&&<div className="load-more"><button onClick={()=>setLimit(limit+48)}>Show more cards <ChevronRight size={16}/></button><span>Showing {Math.min(limit,results.length)} of {results.length}</span></div>}</div>
  {tab==='deck'&&active&&deckView==='build'&&<aside className="deck-list" aria-label="Cards in this deck">
   <div className="deck-list-heading"><div><h3>{section==='deck'?'Main deck':'Sideboard'} <span>{count(active[section])}</span></h3><p>Choose cards from the catalog and adjust copies here.</p></div><div className="view-controls" aria-label="Deck list display"><button aria-label="Show deck card images" aria-pressed={deckListView==='images'} className={deckListView==='images'?'active':''} onClick={()=>setDeckListView('images')}><Grid2X2 size={16}/> Images</button><button aria-label="Show deck rows" aria-pressed={deckListView==='rows'} className={deckListView==='rows'?'active':''} onClick={()=>setDeckListView('rows')}><List size={17}/> Rows</button></div></div>
-  {deckListView==='images'?<div className="deck-list-gallery">{active[section].map(x=>{const card=byId.get(x.id);return <div className="deck-list-card" key={x.id}><button className="deck-list-art" aria-label={'View '+(card?.name||x.id)} onClick={()=>{if(card){setDetail(card);setFlipped(false)}}}>{card?<Art card={card}/>:<span>{x.id}</span>}<b className="quantity-badge">×{x.count}</b></button><strong title={card?.name||x.id}>{card?.name||x.id}</strong><div className="stepper"><button aria-label={'Remove '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count-1}:e).filter(e=>e.count>0)}))}><Minus size={12}/></button><span>{x.count}</span><button aria-label={'Add '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count+1}:e)}))}><Plus size={12}/></button></div></div>})}</div>:active[section].map(x=><div className="deck-line" data-rarity={byId.get(x.id)?.rarity} key={x.id}><button className="deck-line-name" onClick={()=>{const c=byId.get(x.id);if(c){setDetail(c);setFlipped(false)}}}>{byId.get(x.id)?.name||x.id}<small>{byId.get(x.id)?.subtitle}</small></button><div className="stepper"><button aria-label={'Remove '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count-1}:e).filter(e=>e.count>0)}))}><Minus size={12}/></button><span>{x.count}</span><button aria-label={'Add '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count+1}:e)}))}><Plus size={12}/></button></div></div>)}
+  {deckListView==='images'?<div className="deck-list-gallery">{deckSectionCards.map(x=>{const card=byId.get(x.id);return <div className="deck-list-card" key={x.id}><button className="deck-list-art" aria-label={'View '+(card?.name||x.id)} onClick={()=>{if(card){setDetail(card);setFlipped(false)}}}>{card?<Art card={card}/>:<span>{x.id}</span>}<b className="quantity-badge">×{x.count}</b></button><strong title={card?.name||x.id}>{card?.name||x.id}</strong><div className="stepper"><button aria-label={'Remove '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count-1}:e).filter(e=>e.count>0)}))}><Minus size={12}/></button><span>{x.count}</span><button aria-label={'Add '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count+1}:e)}))}><Plus size={12}/></button></div></div>})}</div>:deckSectionCards.map(x=><div className="deck-line" data-rarity={byId.get(x.id)?.rarity} key={x.id}><button className="deck-line-name" onClick={()=>{const c=byId.get(x.id);if(c){setDetail(c);setFlipped(false)}}}>{byId.get(x.id)?.name||x.id}<small>{byId.get(x.id)?.subtitle}</small></button><div className="stepper"><button aria-label={'Remove '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count-1}:e).filter(e=>e.count>0)}))}><Minus size={12}/></button><span>{x.count}</span><button aria-label={'Add '+x.id} onClick={()=>editDeck(d=>({...d,[section]:d[section].map(e=>e.id===x.id?{...e,count:e.count+1}:e)}))}><Plus size={12}/></button></div></div>)}
   {!active[section].length&&<p className="muted">Add cards from the catalog to start building.</p>}<div className="deck-list-footer">{warnings.slice(0,3).map((w,i)=><p key={i}>{w}</p>)}<button onClick={()=>setDeckView('stats')}><BarChart3 size={16}/>View statistics</button></div></aside>}</div></>}
  <footer className="page-footer"><span>HOLOCRON <i> / </i> A personal card archive</span><span>Catalog: {catalog?new Date(catalog.updated).toLocaleDateString():'Loading'} · <span>SWU-DB</span> & <span>SWU API</span><br/>Unofficial fan tool · Card art © Lucasfilm / Fantasy Flight Games</span></footer></div></main></div>
  {resolvingId&&<CollectionResolver key={resolvingId} workspace={workspace} cards={cards} sourceId={resolvingId} onSave={saveResolution} onDismiss={()=>setResolvingId(null)}/>}

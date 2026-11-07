@@ -8,7 +8,24 @@ export const sortLabels = {
 };
 type SortKey = keyof typeof sortLabels;
 export type SortRule = {key: SortKey; direction: 'asc' | 'desc'};
-export const defaultSort: SortRule[] = [{key: 'name', direction: 'asc'}];
+export const defaultSort: SortRule[] = [{key: 'cost', direction: 'asc'}, {key: 'aspects', direction: 'asc'}];
+export const aspectOrder = ['Vigilance', 'Command', 'Aggression', 'Cunning', 'Heroism', 'Villainy'];
+const aspectRank = (aspect: string) => {
+  const rank = aspectOrder.indexOf(aspect);
+  return rank < 0 ? aspectOrder.length : rank;
+};
+export function orderedAspects(aspects: readonly string[]) {
+  return [...aspects].sort((a,b) => aspectRank(a) - aspectRank(b) || a.localeCompare(b));
+}
+export function compareAspects(a: readonly string[], b: readonly string[]) {
+  if (!a.length || !b.length) return Number(!a.length) - Number(!b.length);
+  const left = orderedAspects(a), right = orderedAspects(b);
+  for (let i = 0; i < Math.min(left.length, right.length); i++) {
+    const difference = aspectRank(left[i]) - aspectRank(right[i]) || left[i].localeCompare(right[i]);
+    if (difference) return difference;
+  }
+  return left.length - right.length;
+}
 export function sortRule(key: SortKey): SortRule {
   return {key, direction: ['power', 'hp', 'owned', 'foil'].includes(key) ? 'desc' : 'asc'};
 }
@@ -29,7 +46,7 @@ export function compareCards(a: Card, b: Card, rules: SortRule[], owned: Map<str
     } else if (key === 'set') {
       difference = a.set.localeCompare(b.set) || a.number.localeCompare(b.number, undefined, {numeric: true});
     } else if (key === 'aspects') {
-      difference = [...a.aspects].sort().join(',').localeCompare([...b.aspects].sort().join(','));
+      difference = compareAspects(a.aspects, b.aspects);
     } else if (key === 'name') {
       difference = a.name.localeCompare(b.name) || a.subtitle.localeCompare(b.subtitle);
     } else {

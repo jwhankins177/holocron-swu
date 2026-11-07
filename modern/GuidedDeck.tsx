@@ -1,3 +1,4 @@
+import {compareAspects,orderedAspects} from './lib/card-display';
 import {useEffect,useMemo,useState} from 'react';
 import {aspectPenalty,deckWarnings,probability} from './lib/model';
 import type {Card,Deck} from './lib/model';
@@ -87,7 +88,7 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
    }
    seen.add(card.core);
    return true;
-  }).sort((a,b)=>(choosing?0:(a.cost??99)+aspectPenalty(a,leader,base)-(b.cost??99)-aspectPenalty(b,leader,base))||a.name.localeCompare(b.name));
+  }).sort((a,b)=>(a.cost===null||b.cost===null?Number(a.cost===null)-Number(b.cost===null):a.cost-b.cost+(choosing?0:aspectPenalty(a,leader,base)-aspectPenalty(b,leader,base)))||compareAspects(a.aspects,b.aspects)||a.name.localeCompare(b.name));
  },[cards,query,choosing,step,premier,premierIds,ownedOnly,owned,includePenalty,type,arena,cost,leader,base]);
  useEffect(()=>setSingleIndex(0),[step,query,premier,ownedOnly,includePenalty,type,arena,cost]);
  const currentIndex=Math.min(singleIndex,Math.max(0,candidates.length-1));
@@ -185,7 +186,7 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
        return <li key={card.id}>
         {candidateView!=='rows'&&<button className="guided-result-art" aria-label={'View '+card.name} onClick={()=>onDetail(card)}><img loading="lazy" src={card.image} alt={card.name}/></button>}
         <div><button className="text-button" onClick={()=>onDetail(card)}><b>{card.name}</b>{card.subtitle&&<small>{card.subtitle}</small>}</button>
-         <small>{card.aspects.join(' / ')||'Neutral'} · {card.arena||card.type} · {ownedCount} owned{!choosing?` · ${copies}/3 in deck + sideboard`:''}</small></div>
+         <small>{orderedAspects(card.aspects).join(' / ')||'Neutral'} · {card.arena||card.type} · {ownedCount} owned{!choosing?` · ${copies}/3 in deck + sideboard`:''}</small></div>
         {!choosing&&card.cost!==null&&<strong className={penalty?'warning':''}>{card.cost+penalty} cost{penalty>0?` (+${penalty})`:''}</strong>}
         <button disabled={unavailable} aria-label={(choosing?'Choose ':'Add ')+card.name} onClick={()=>pick(card)}>{choosing?(isChosen?'Selected':'Choose'):'Add'}</button>
        </li>;
