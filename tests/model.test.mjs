@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseCollection,exportCollection,mergeCollection,parseDeck,deckExport,aspectPenalty,probability,deckWarnings,validateBackup,createBackup,toggleFavorite} from '../lib/model.ts';
+import {forceTableDeckUrl} from '../modern/lib/model.ts';
 const catalog=JSON.parse(readFileSync(new URL('../public/catalog.json',import.meta.url)));
 const byId=new Map(catalog.cards.map(c=>[c.id,c]));
 test('CSV roundtrip retains foil, alternate printing, unknown card, and quantities',()=>{const input='\uFEFFSet,CardNumber,Count,IsFoil\r\nSOR,5,2,FALSE\r\nSOR,005,1,TRUE\r\nJTL,320,3,FALSE\r\nXYZ,999,1,FALSE';const rows=parseCollection(input);assert.equal(rows[0].id,'SOR_005');assert.deepEqual(parseCollection(exportCollection(rows)),rows);assert.equal(mergeCollection(rows,rows)[0].count,4)});
@@ -40,4 +41,13 @@ test('Full backups preserve card and deck favorites, including unknown card IDs'
  assert.deepEqual(validateBackup(JSON.parse(createBackup(state).text).data),state);
  assert.deepEqual(validateBackup({collection:[],decks:[]}),{collection:[],decks:[]});
  assert.throws(()=>validateBackup({...state,favorites:{cards:[42],decks:[]}}),/favorite/);
+});
+
+test('ForceTable uses the compatible Chopper Base printing only in the launch link',()=>{
+ const deck=parseDeck(JSON.stringify({...raw,metadata:{name:'Wedge — Chopper Base'},base:{id:'JTL_029',count:1}}));
+ const readLaunch=d=>JSON.parse(atob(new URL(forceTableDeckUrl(d)).searchParams.get('id')));
+ assert.deepEqual(readLaunch(deck),{...deckExport(deck),base:{id:'SOR_030',count:1}});
+ assert.equal(deck.base,'JTL_029');
+ assert.equal(deckExport(deck).base.id,'JTL_029');
+ assert.deepEqual(readLaunch({...deck,base:'HMW_028'}),deckExport({...deck,base:'HMW_028'}));
 });
