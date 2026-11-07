@@ -202,8 +202,21 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
 .assembly-progress{margin-bottom:18px}
 .assembly-section{margin-bottom:20px}
 .assembly-section h3{margin-bottom:8px}
-.assembly-section td small{display:block;margin-top:3px;color:var(--muted)}
-.assembly-section td input{width:18px;height:18px;accent-color:var(--teal)}
-.assembly-section td:nth-child(2),.assembly-section td:last-child{min-width:125px;white-space:normal}
-.assembly-aspects{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.assembly-aspects .dots:empty{display:none}
+.assembly-section table{table-layout:fixed;font-size:13px}
+.assembly-section :is(th,td){padding:6px;text-align:center}
+.assembly-section th:first-child{width:48px}
+.assembly-section :is(th,td):nth-child(2){text-align:left;white-space:normal;overflow-wrap:anywhere}
+.assembly-section th:nth-child(n+3){width:52px}
+.assembly-section td small{color:var(--muted);line-height:1.35}
+.assembly-section td:first-child{padding:0}
+.assembly-check{display:grid;place-items:center;min-height:44px;cursor:pointer}
+.assembly-check input[type=checkbox]{width:20px;height:20px;margin:0}
+.assembly-aspects .dots{display:inline-flex;flex-wrap:wrap;justify-content:center;gap:3px}
+.assembly-neutral>span{background:var(--muted)}
+@media(max-width:600px){
+ .assembly-section :is(th,td){padding:4px 2px}
+ .assembly-section th:first-child{width:44px}
+ .assembly-section th:nth-child(n+3){width:32px}
+ .assembly-section th:last-child{width:39px}
+ .assembly-aspects .dots>span{width:9px;height:9px}
+}
