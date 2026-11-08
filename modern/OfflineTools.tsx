@@ -34,10 +34,11 @@ export default function OfflineTools(){
     const keys=new Set((await cache.keys()).map(r=>new URL(r.url).pathname));
     const cached=manifest.files.filter(file=>keys.has(new URL(file,location.href).pathname)).length;setProgress(cached);
     const priority=priorityArtwork(window.__HOLOCRON_CATALOG__,workspace);
-    const priorityFiles=manifest.files.filter(file=>priority.has(file));
+    const priorityFiles=manifest.files.filter(file=>!file.startsWith('./art/')||priority.has(file));
     const priorityCached=priorityFiles.filter(file=>keys.has(new URL(file,location.href).pathname)).length;
     setPriorityTotal(priorityFiles.length);setPriorityProgress(priorityCached);
-    const allReady=cached===manifest.files.length&&!!await cache.match(new URL('./index.html',location.href));
+    const readyMarker=await cache.match(new URL('./offline-ready',location.href));
+    const allReady=cached===manifest.files.length&&!!await cache.match(new URL('./index.html',location.href))&&!!readyMarker&&await readyMarker.text()===manifest.version;
     if(allReady){await cache.put(new URL('./offline-ready',location.href),new Response(manifest.version));setPhase('ready');setStatus('Ready to use offline');return}
     const marker=await cache.match(new URL('./offline-priority-ready',location.href));
     const priorityReady=priorityCached===priorityFiles.length&&!!marker&&await marker.text()===manifest.version;
@@ -57,15 +58,17 @@ export default function OfflineTools(){
  }
 
  async function install(){
-  setRunning(true);setError('');let currentPhase:Phase='priority';
+  setRunning(true);setError('');let currentPhase:Phase='priority';let prepared=false;
   try{
    const response=await fetch('./asset-manifest.json',{headers:{'X-Holocron-Install':'1'}});if(!response.ok)throw Error('Cannot load the installation manifest.');const manifest:Manifest=await response.json();
    const cache=await caches.open(CACHE);if(navigator.storage?.persist)await navigator.storage.persist();
+   const oldMarker=await cache.match(new URL('./offline-priority-ready',location.href));
+   if(!oldMarker||await oldMarker.text()!==manifest.version)for(const file of manifest.files)if(!file.startsWith('./art/')&&!file.startsWith('./assets/'))await cache.delete(file);
    const keys=new Set((await cache.keys()).map(r=>new URL(r.url).pathname));
    const pending=manifest.files.filter(file=>!keys.has(new URL(file,location.href).pathname));
    setTotal(manifest.files.length);setProgress(manifest.files.length-pending.length);
    const prioritySet=priorityArtwork(window.__HOLOCRON_CATALOG__,workspace);
-   const priorityFiles=manifest.files.filter(file=>prioritySet.has(file));
+   const priorityFiles=manifest.files.filter(file=>!file.startsWith('./art/')||prioritySet.has(file));
    let priorityDone=priorityFiles.filter(file=>keys.has(new URL(file,location.href).pathname)).length;
    setPriorityTotal(priorityFiles.length);setPriorityProgress(priorityDone);
    const priorityMarker=new URL('./offline-priority-ready',location.href);
@@ -77,8 +80,11 @@ export default function OfflineTools(){
     // Verify priority assets before telling the user their collection is ready.
     for(const file of priorityFiles)if(!await cache.match(file))throw Error('A card image is missing. Retry setup to resume.');
     await cache.put(priorityMarker,new Response(manifest.version));
+    prepared=true;
    }
-   currentPhase='full';setPhase(currentPhase);setStatus('Your cards are ready · downloading the rest');setOpen(false);
+   currentPhase='full';setPhase(currentPhase);
+   if(prepared){setStatus('Your cards are ready · full artwork download available');setOpen(false);return}
+   setStatus('Downloading the full artwork library');setOpen(false);
    let cachedCount=0;for(const file of manifest.files)if(await cache.match(file))cachedCount++;
    setProgress(cachedCount);
    const estimate=await navigator.storage?.estimate?.();
@@ -92,7 +98,7 @@ export default function OfflineTools(){
   finally{setRunning(false)}
  }
 
- const progressText=phase==='priority'?`${priorityProgress.toLocaleString()} / ${priorityTotal.toLocaleString()} priority artwork files · ${progress.toLocaleString()} / ${total.toLocaleString()} total cached`:phase==='full'?`${progress.toLocaleString()} / ${total.toLocaleString()} artwork files cached`:`${total.toLocaleString()} artwork files ready`;
+ const progressText=phase==='priority'?`${priorityProgress.toLocaleString()} / ${priorityTotal.toLocaleString()} essential files · ${progress.toLocaleString()} / ${total.toLocaleString()} total cached`:phase==='full'?`${progress.toLocaleString()} / ${total.toLocaleString()} files cached`:`${total.toLocaleString()} files ready`;
  const buttonText=running?(phase==='priority'?'Preparing your cards…':'Downloading remaining artwork'):phase==='ready'?'Verify offline artwork':phase==='full'?'Continue full artwork download':'Prepare my cards first';
- return <><button className="local-status" onClick={()=>setOpen(true)}>{status}</button>{open&&<Modal label="Local storage and offline setup" onDismiss={()=>setOpen(false)}><section className="modal local-setup"><button className="close" onClick={()=>setOpen(false)} aria-label="Close storage settings">×</button><h2>Everything on this device</h2><p>No account. No sign-in. Your collection, decks, lists, and favorites save in this browser on this device.</p><h3>{status}</h3>{location.protocol!=='file:'&&<><p>Holocron prepares artwork for cards in your collection, decks, lists, and favorites first. You can use the app while the rest of the card library downloads. Keep Holocron open until the full download finishes for complete offline browsing.</p>{total>0&&<><progress max={Math.max(total,1)} value={Math.min(progress,total)}/><p>{progressText}</p></>}<button className="primary" disabled={running||phase==='ready'} onClick={()=>void install()}>{buttonText}</button>{phase==='ready'&&<p className="success">Full card artwork is saved on this device.</p>}</>}{error&&<p role="alert" className="warning">{error}</p>}<p>Use Backup to keep a JSON copy in Files. Clearing this app’s browser data or deleting its storage can remove your collection. iCloud file backups are manual.</p><p>ForceTable opens online only when you choose Play on ForceTable. Card browsing, guides, deckbuilding, statistics, imports, exports, lists, and favorites work locally.</p></section></Modal>}</>;
+ return <><button className="local-status" onClick={()=>setOpen(true)}>{status}</button>{open&&<Modal label="Local storage and offline setup" onDismiss={()=>setOpen(false)}><section className="modal local-setup"><button className="close" onClick={()=>setOpen(false)} aria-label="Close storage settings">×</button><h2>Everything on this device</h2><p>No account. No sign-in. Your collection, decks, lists, and favorites save in this browser on this device.</p><h3>{status}</h3>{location.protocol!=='file:'&&<><p>First save the app and artwork for your collection, decks, lists, and favorites. You can then choose whether to download the entire card art library. Keep Holocron open while a download runs.</p>{total>0&&<><progress max={Math.max(total,1)} value={Math.min(progress,total)}/><p>{progressText}</p></>}<button className="primary" disabled={running||phase==='ready'} onClick={()=>void install()}>{buttonText}</button>{phase==='ready'&&<p className="success">Full card artwork is saved on this device.</p>}</>}{error&&<p role="alert" className="warning">{error}</p>}<p>Use Backup to keep a JSON copy in Files. Clearing this app’s browser data or deleting its storage can remove your collection. iCloud file backups are manual.</p><p>ForceTable opens online only when you choose Play on ForceTable. Card browsing, guides, deckbuilding, statistics, imports, exports, lists, and favorites work locally.</p></section></Modal>}</>;
 }

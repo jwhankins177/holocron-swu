@@ -1,4 +1,8 @@
-# vinext-starter
+# Holocron
+
+For the offline Windows package and cross-device home sync, see [standalone/README.md](standalone/README.md). The hosted Site remains a separate cloud workspace.
+
+## Hosted Site development
 
 A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
 

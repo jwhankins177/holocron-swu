@@ -8,7 +8,7 @@ The web bundle can be built and checked on Linux. The Swift app requires compila
 
 ## Build on a Mac
 
-1. From the repository root, install the project's locked JavaScript dependencies and run `node scripts/build-offline.mjs`. This resumes cached artwork downloads and refuses to silently produce a complete-art build when downloads fail. `--allow-missing-art` explicitly permits an incomplete preview; missing images show the card's text fallback. `offline/art-report.json` lists every unavailable URL.
+1. From the repository root, install the project's locked JavaScript dependencies and run `node scripts/build-offline.mjs --ios`. This builds the standalone web package and copies its assets into the iOS shell. It resumes cached artwork downloads and refuses to silently produce a complete-art build when downloads fail. `--allow-missing-art` explicitly permits an incomplete preview; missing images show the card's text fallback. `offline/art-report.json` lists every unavailable URL.
 2. Install Xcode and the build-only XcodeGen utility (`brew install xcodegen`). Run `cd native/ios && xcodegen generate` and open `Holocron.xcodeproj`.
 3. Select your Apple development team. Replace `com.jonathon.holocron` with a bundle ID registered to that team if necessary. Update the matching `iCloud.com.jonathon.holocron` entitlement values. Enable iCloud Documents in Signing & Capabilities and associate the container with the app. Both devices must run a build using that same container.
 4. Build and run on your iPhone and iPad. Distribution to other devices requires your Apple signing/distribution setup. An Apple developer membership supporting iCloud is required. For distribution, add an app icon and complete Apple's required app metadata.

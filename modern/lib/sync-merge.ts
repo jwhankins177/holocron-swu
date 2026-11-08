@@ -16,9 +16,10 @@ export function mergeWorkspaces(base:Workspace,local:Workspace,remote:Workspace,
  }
  function setMerge(b:string[],l:string[],r:string[]){return [...new Set([...b,...l,...r])].sort().filter(x=>choose('favorite:'+x,x,b.includes(x),l.includes(x),r.includes(x)))}
  const collection=rows('collection',base.collection,local.collection,remote.collection,x=>x.id+':'+x.foil,x=>x.id+(x.foil?' · foil':' · non-foil'));
+ const resolutions=rows('resolution',base.resolutions||[],local.resolutions||[],remote.resolutions||[],x=>x.sourceId,x=>'Collection mapping: '+x.sourceId);
  const decks=rows('deck',base.decks,local.decks,remote.decks,x=>x.uid,x=>'Deck: '+x.name);
  const lists=rows('list',base.lists||[],local.lists||[],remote.lists||[],x=>x.uid,x=>'List: '+x.name);
  const favorites={cards:setMerge(base.favorites?.cards||[],local.favorites?.cards||[],remote.favorites?.cards||[]),decks:setMerge(base.favorites?.decks||[],local.favorites?.decks||[],remote.favorites?.decks||[])};
  const settings:Record<string,any>={};for(const k of new Set([...Object.keys(base.settings||{}),...Object.keys(local.settings||{}),...Object.keys(remote.settings||{})])){const v=choose('setting:'+k,'Preference: '+k,(base.settings as any)?.[k],(local.settings as any)?.[k],(remote.settings as any)?.[k]);if(v!==undefined)settings[k]=v}
- return {data:validateBackup({collection,decks,lists,favorites,settings}),conflicts};
+ return {data:validateBackup({collection,resolutions,decks,lists,favorites,settings}),conflicts};
 }
