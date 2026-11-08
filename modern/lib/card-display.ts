@@ -58,11 +58,33 @@ export function compareCards(a: Card, b: Card, rules: SortRule[], owned: Map<str
 }
 
 export const emptyFilters = {
-  q: '', aspect: [] as string[], aspectMode: 'any', type: '', set: '', keyword: '', trait: '',
+  q: '', aspect: [] as string[], aspectMode: 'any', type: '', kinds: [] as string[], set: '', keyword: '', trait: '',
   rarity: '', finish: '', variant: '', arena: '', ability: '', artist: '',
   maxCost: '', minPower: '', minHp: '', onlyOwned: false, onlyUnowned: false, premierOnly: false, allPrintings: false,
 };
 export type CardFilters = typeof emptyFilters;
+export const cardKindOptions = [
+  {value: 'Unit:Ground', label: 'Ground units'},
+  {value: 'Unit:Space', label: 'Space units'},
+  {value: 'Event', label: 'Events'},
+  {value: 'Upgrade', label: 'Upgrades'},
+  {value: 'Leader', label: 'Leaders'},
+  {value: 'Base', label: 'Bases'},
+  {value: 'Token Unit', label: 'Token units'},
+  {value: 'Token Upgrade', label: 'Token upgrades'},
+  {value: 'Force Token', label: 'Force tokens'},
+  {value: 'Credit Token', label: 'Credit tokens'},
+] as const;
+export function cardKind(card: Pick<Card, 'type' | 'arena'>) {
+  return card.type === 'Unit' && card.arena ? `Unit:${card.arena}` : card.type;
+}
+export function matchesCardKinds(card: Pick<Card, 'type' | 'arena'>, kinds: readonly string[]) {
+  return kinds.length === 0 || kinds.includes(cardKind(card));
+}
+export function kindsFromLegacyType(type: string, arena: string) {
+  if (type !== 'Unit') return type ? [type] : [];
+  return arena ? [`Unit:${arena}`] : ['Unit:Ground', 'Unit:Space'];
+}
 export type QuickFilter = {id: string; name: string; scope: 'collection' | 'catalog'; filters: CardFilters};
 export const defaultQuickFilters: QuickFilter[] = [
   {id: 'heroism', name: 'My Heroism cards', scope: 'collection', filters: {...emptyFilters, aspect: ['Heroism']}},
@@ -80,7 +102,7 @@ export function validateCardDisplay(settings: Record<string, unknown>) {
     quickFilters.some(preset => !preset || typeof preset.id !== 'string' || typeof preset.name !== 'string' ||
       !preset.name.trim() || preset.name.length > 60 || !['collection', 'catalog'].includes(preset.scope) ||
       !preset.filters || Object.entries(emptyFilters).some(([key, value]) =>
-        (key === 'premierOnly' || key === 'onlyUnowned') && preset.filters[key] === undefined ? false :
+        (key === 'premierOnly' || key === 'onlyUnowned' || key === 'kinds') && preset.filters[key] === undefined ? false :
         Array.isArray(value) ? !Array.isArray(preset.filters[key]) || preset.filters[key].some((item: unknown) => typeof item !== 'string')
           : typeof preset.filters[key] !== typeof value)) ||
     new Set(quickFilters.map(preset => preset.id)).size !== quickFilters.length)) throw Error('Invalid quick filters');

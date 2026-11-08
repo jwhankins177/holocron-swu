@@ -229,3 +229,11 @@ select option,select optgroup{background-color:#fff;color:var(--ink)}
 .guides-area .guide-tile h3{font-size:16px;overflow-wrap:anywhere}
 .guides-area .guide-read{margin-top:6px}
 .guides-area .guide-reference:hover{text-decoration:underline}
+
+.card-kind-picker{min-width:180px}
+.card-kind-picker summary{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.card-kind-picker>div{min-width:220px;max-height:min(55vh,380px);overflow-y:auto}
+.card-kind-picker label{font-size:12px;white-space:nowrap}
+.card-kind-picker input[type=checkbox]{accent-color:var(--gold)}
+.card-kind-picker>div button{font-size:11px;text-align:left}
+@media(max-width:600px){.card-kind-picker{min-width:145px;flex:1}.card-kind-picker>div{left:0;right:auto}}
