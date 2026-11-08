@@ -1,8 +1,10 @@
 import {readFile,writeFile,mkdir,copyFile,readdir,stat,cp,link,open} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
+import {createReadStream} from 'node:fs';
 import {join,relative} from 'node:path';
 import {build} from 'vite';
 const smoke=process.argv.includes('--skip-art');
+const offlineBuild=process.argv.includes('--offline');
 const allowMissing=process.argv.includes('--allow-missing-art')||smoke;
 const ios=process.argv.includes('--ios');
 const output='outputs/standalone';
@@ -14,7 +16,7 @@ await mkdir('offline/art',{recursive:true});
 const known=new Set(await readdir('offline/art'));
 let done=0,missing=[];
 async function validArt(path){try{if((await stat(path)).size<100)return false;const f=await open(path,'r');try{const b=Buffer.alloc(12);await f.read(b,0,12,0);return b.subarray(0,3).equals(Buffer.from([255,216,255]))||b.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10]))||b.toString('ascii',0,4)==='RIFF'&&b.toString('ascii',8,12)==='WEBP'}finally{await f.close()}}catch{return false}}
-async function worker(){while(urls.length){const u=urls.pop(),name=file(u),path='offline/art/'+name;if(!known.has(name)||!await validArt(path)){if(smoke){missing.push({url:u,error:'Skipped for smoke build'});continue}try{const r=await fetch(u,{signal:AbortSignal.timeout(30000)});if(!r.ok||!r.headers.get('content-type')?.startsWith('image/'))throw Error('HTTP '+r.status);await writeFile(path,new Uint8Array(await r.arrayBuffer()));if(!await validArt(path))throw Error('Downloaded image is invalid')}catch(e){missing.push({url:u,error:e.message});continue}}done++;if(done%250===0)console.log(`${done} images ready`)}}
+async function worker(){while(urls.length){const u=urls.pop(),name=file(u),path='offline/art/'+name;if(!known.has(name)||!await validArt(path)){if(smoke){missing.push({url:u,error:'Skipped for smoke build'});continue}try{if(/^\.\/manual-art\/[A-Za-z0-9._-]+$/.test(u))await copyFile(join('offline',u.slice(2)),path);else if(offlineBuild)throw Error('Artwork must be provided locally for an offline build');else{const r=await fetch(u,{signal:AbortSignal.timeout(30000)});if(!r.ok||!r.headers.get('content-type')?.startsWith('image/'))throw Error('HTTP '+r.status);await writeFile(path,new Uint8Array(await r.arrayBuffer()))}if(!await validArt(path))throw Error('Artwork is not a valid JPG, PNG or WebP image')}catch(e){missing.push({url:u,error:e.message});continue}}done++;if(done%250===0)console.log(`${done} images ready`)}}
 await Promise.all(Array.from({length:12},worker));
 await writeFile('offline/art-report.json',JSON.stringify({ready:done,missing},null,2));
 if(missing.length&&!allowMissing)throw Error(`${missing.length} images unavailable. See offline/art-report.json. Re-run to resume. An incomplete build requires --allow-missing-art.`);
@@ -46,7 +48,13 @@ await copyFile('standalone/enable-sync.ps1',join(output,'enable-sync.ps1'));
 await copyFile('standalone/rotate-key.mjs',join(output,'rotate-key.mjs'));
 await copyFile('standalone/rotate-key.cmd',join(output,'rotate-key.cmd'));
 await mkdir(join(output,'runtime'),{recursive:true});
-if(process.platform==='win32')await copyFile(process.execPath,join(output,'runtime','node.exe'));
+async function sha256(path){const hash=createHash('sha256');for await(const chunk of createReadStream(path))hash.update(chunk);return hash.digest('hex')}
+if(process.platform==='win32'){
+ const destination=join(output,'runtime','node.exe');
+ let identical=false;
+ try{identical=(await stat(process.execPath)).size===(await stat(destination)).size&&await sha256(process.execPath)===await sha256(destination)}catch{}
+ if(!identical)await copyFile(process.execPath,destination);
+}
 else console.warn('This build was made outside Windows. Copy a Windows Node.js runtime to runtime/node.exe before distributing.');
 if(ios){await cp(app,'native/ios/Holocron/Web',{recursive:true,force:true});console.log('iOS web bundle copied to native/ios/Holocron/Web')}
 console.log(`Standalone package: ${output} · v${version} · ${done} art files; ${missing.length} unavailable${smoke?' (smoke build only)':''}.`);
