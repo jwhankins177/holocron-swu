@@ -17,6 +17,9 @@ test('standalone server preserves revisions, rejects stale writes, and serves on
   const headers={Authorization:`Bearer ${instance.config.key}`,'X-Holocron-Sync':'1'};
   const get=()=>fetch(url+'/v1/workspace',{headers});
   assert.equal((await fetch(url+'/')).status,200);
+  const pastedLink=await fetch(url+'/**',{redirect:'manual'});
+  assert.equal(pastedLink.status,302);
+  assert.equal(pastedLink.headers.get('location'),'/');
   assert.match((await fetch(url+'/art/card.img')).headers.get('content-type'),/image\/png/);
   const preflight=await fetch(url+'/v1/workspace',{method:'OPTIONS',headers:{Origin:'https://laptop.tail.ts.net','Access-Control-Request-Method':'PUT'}});
   assert.equal(preflight.status,204);

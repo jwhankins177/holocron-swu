@@ -22,7 +22,8 @@ await writeFile('offline/art-report.json',JSON.stringify({ready:done,missing},nu
 if(missing.length&&!allowMissing)throw Error(`${missing.length} images unavailable. See offline/art-report.json. Re-run to resume. An incomplete build requires --allow-missing-art.`);
 for(const c of catalog.cards)for(const k of ['image','back'])if(c[k])c[k]='./art/'+file(c[k]);
 await writeFile('offline/catalog.json',JSON.stringify(catalog));
-const css=(await readFile('app/globals.css','utf8')).replace(/^@import url\([^\n]+\);\s*/,'');
+// Match the styles actually loaded by app/layout.tsx on the hosted Site.
+const css=(await readFile('modern/styles.css','utf8'))+'\n'+(await readFile('modern/tuning.css','utf8'));
 await writeFile('offline/offline.css',css+'\nbody{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}.local-status{position:fixed;right:12px;bottom:12px;z-index:50;background:#173b34;color:#eaf3e9;border:1px solid #547b67;border-radius:8px;padding:8px 12px;box-shadow:0 4px 18px #0005}\n');
 await build({configFile:'offline/vite.config.mjs'});
 await copyFile('offline/catalog.json',join(app,'catalog.json'));

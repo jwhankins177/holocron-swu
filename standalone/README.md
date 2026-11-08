@@ -16,9 +16,9 @@ For a fully manual card update, edit `public/catalog.json`, put any new JPG, PNG
 
 ## Run locally without sync
 
-1. Double-click `start.cmd` in the package and open `http://127.0.0.1:8765/` on that Windows PC. Keep the package together. The app is served from the PC itself; Tailscale and an internet connection are not needed.
+1. Double-click `start.cmd` in the package and open exactly `http://127.0.0.1:8765/` on that Windows PC. Keep the package together and leave the command window open. The app is served from the PC itself; Tailscale and an internet connection are not needed. After replacing the package with a newer version, close and reopen `start.cmd`, then refresh the browser.
 2. Open **Local only** in Holocron's toolbar and leave **Local only** selected. This is the default for new installs. No home server is contacted, and the app makes no automatic catalog update requests. The bundled catalog and artwork are used locally.
-3. Use **Backup** for a full JSON copy of your collection, decks, lists, favorites, settings, and resolution mappings. To bring that data to another installation, use the app's backup import. Collection CSV/JSON imports can update just the collection. Rebuild the package with a changed catalog JSON and artwork when you intentionally update the card catalog.
+3. The first local run has the same catalog and interface as the Site, but its collection and decks start empty. On the live Site, choose **Backup**. In the local app, choose **Import full backup** and select that JSON file. This transfers your collection, decks, lists, favorites, settings, and resolution mappings once without turning on sync. Rebuild the package with a changed catalog JSON and artwork when you intentionally update the card catalog.
 
 Turning Home sync off aborts active sync requests, removes this device's pairing key, and keeps local workspace data. You can re-enable Home sync and pair again later. ForceTable opens separately only when you choose **Play on ForceTable**. The Windows server stays on loopback unless you separately run `enable-sync.ps1`.
 

@@ -98,6 +98,7 @@ export async function createHolocronServer({appDir,dataDir,port=8765,host='127.0
   let pathname;
   try{pathname=decodeURIComponent(path)}catch{json(response,400,{error:'Invalid path.'});return}
   if(pathname.includes('\\')||pathname.split('/').includes('..')){json(response,403,{error:'Forbidden.'});return}
+  if(pathname==='/**'){response.writeHead(302,{'Location':'/','Cache-Control':'no-store'});response.end();return}
   const target=resolve(root,'.'+(pathname==='/'?'/index.html':pathname));
   if(target!==root&&!target.startsWith(root+sep)){json(response,403,{error:'Forbidden.'});return}
   try{

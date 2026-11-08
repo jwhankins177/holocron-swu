@@ -39,13 +39,13 @@ export default function OfflineTools(){
   window.addEventListener('storage',storageChanged);
   async function setup(){
    if(location.protocol==='file:'){setStatus('Local app and artwork folder');return}
-   if(!('serviceWorker'in navigator)||!isSecureContext){setStatus('Offline installation needs HTTPS or localhost');setOpen(true);return}
+   if(!('serviceWorker'in navigator)||!isSecureContext){setStatus('Offline installation needs HTTPS or localhost');return}
    try{
     const remoteLocalOnly=connectionMode()==='local-only'&&!loopback();
     if(!remoteLocalOnly)await navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'});
     const cache=await caches.open(CACHE);
     await tellWorkerMode();
-    if(remoteLocalOnly&&!await cache.match('./asset-manifest.json')){setStatus('Prepare offline files to use this device without a connection');setOpen(true);return}
+    if(remoteLocalOnly&&!await cache.match('./asset-manifest.json')){setStatus('Prepare offline files to use this device without a connection');return}
     const manifestResponse=remoteLocalOnly?await cache.match('./asset-manifest.json'):await fetch('./asset-manifest.json',{headers:{'X-Holocron-Install':'1'}});
     if(!manifestResponse)throw Error('Installation manifest is not saved yet.');
     if(!manifestResponse.ok)throw Error('Cannot load the installation manifest.');
@@ -63,8 +63,7 @@ export default function OfflineTools(){
     const priorityReady=manifest.version===APP_VERSION&&priorityCached===priorityFiles.length&&!!marker&&await marker.text()===manifest.version;
     if(priorityReady){setPhase('full');setStatus('Your cards are ready · full artwork download available')}
     else{setPhase('priority');setStatus(priorityFiles.length?'Prepare your cards for offline use':'Download artwork to finish offline setup')}
-    setOpen(true);
-   }catch(e:any){setStatus('Offline setup incomplete');setError(e.message);setOpen(true)}
+   }catch(e:any){setStatus('Offline setup incomplete');setError(e.message)}
   }
   void setup();return()=>{window.removeEventListener('holocron-storage',show);window.removeEventListener('holocron-workspace',workspaceChanged);window.removeEventListener('holocron-connection-mode',modeChanged);window.removeEventListener('storage',storageChanged)};
  },[]);
