@@ -73,3 +73,6 @@
 .update-notice{border-color:#668d73;gap:14px}
 .update-notice span{flex:1}
 .update-notice button{font-weight:700}
+.import-mode{flex-wrap:wrap}
+.import-confirmation{display:flex;align-items:flex-start;gap:11px;margin-top:16px;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--panel-raised,#edf2e8);color:var(--ink);font-size:12px;line-height:1.5;cursor:pointer}
+.import-confirmation input{margin:2px 0 0}
