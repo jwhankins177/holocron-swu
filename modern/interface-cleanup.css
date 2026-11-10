@@ -55,3 +55,6 @@
 
 .deck-play-button{min-height:44px;white-space:nowrap}
 @media(max-width:700px){.deck-view-menu .deck-play-button{width:100%;justify-content:center}}
+
+.deck-section-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.deck-section-nav button,.deck-section-nav select{min-height:44px;font-size:12px}.deck-view-menu .deck-section-nav select{width:auto;max-width:180px}.deck-section-nav button[aria-pressed=true],.deck-section-filter button[aria-pressed=true]{background:var(--teal);color:#fff;border-color:var(--teal)}.deck-section-filter{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);font-size:12px}.deck-section-filter>div{display:flex;gap:6px}.deck-section-filter button{min-height:40px;font-size:12px}
+@media(max-width:700px){.deck-section-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}.deck-section-nav button{padding:8px 4px}.deck-view-menu .deck-section-nav select{grid-column:1/-1;width:100%;max-width:none}.deck-section-filter{padding:10px}.deck-section-filter>div{width:100%}.deck-section-filter button{flex:1}}
