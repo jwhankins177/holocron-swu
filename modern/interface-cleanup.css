@@ -1,0 +1,44 @@
+.workspace-navigation{width:100%;justify-content:space-between}
+.workspace-navigation nav{margin-left:auto}
+.page-heading{margin-bottom:22px}
+.options-menu{position:relative;min-width:0}
+.options-menu>summary{display:flex;align-items:center;justify-content:center;gap:6px;min-height:35px;padding:8px;list-style:none;border:1px solid var(--line);border-radius:7px;background:var(--panel,#20312a);color:var(--ink);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.options-menu>summary::-webkit-details-marker{display:none}
+.options-menu[open]>summary,.options-menu>summary:hover{background:var(--panel-raised,#2c4136)}
+.options-unsaved{margin:0!important;padding:0 4px!important;background:#aa6f3e!important;color:#fff!important}
+.options-popover{position:absolute;z-index:40;top:calc(100% + 8px);right:0;width:min(340px,calc(100vw - 24px));max-height:75dvh;overflow:auto;padding:9px;background:var(--panel,#20312a);color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:0 18px 45px #0007}
+.options-section{display:grid;gap:3px;padding:8px 4px;border-bottom:1px solid var(--line)}
+.options-section>strong{padding:4px 8px;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.workspace-navigation nav .options-section>button,.workspace-navigation nav .options-section>.favorite-button{display:flex;width:100%;min-height:36px;justify-content:flex-start;gap:8px;white-space:normal;text-align:left;padding:8px 10px;border:0;border-radius:6px;background:transparent;color:var(--ink);font-size:12px;font-weight:600}
+.workspace-navigation nav .options-section>button:hover,.workspace-navigation nav .options-section>.favorite-button:hover{background:var(--panel-raised,#2c4136)}
+.options-section .theme-picker{width:100%}
+.options-section .theme-picker>summary{width:100%;padding:9px 10px;border:0;background:transparent;font-size:12px}
+.options-section .theme-options{position:static;width:100%;max-height:240px;box-shadow:none}
+.options-status{display:flex;align-items:center;gap:7px;padding:10px 12px;font-size:11px;color:var(--muted)}
+.options-status button{margin-left:auto;padding:5px 8px;font-size:11px}
+.tools-sections{margin:0 0 16px}
+.tools-sections button{display:inline-flex;gap:6px}
+.compact-metrics{grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:22px}
+.compact-metrics .metric-card{display:flex;align-items:flex-start;flex-direction:column;justify-content:center;gap:3px;min-width:0;min-height:86px;padding:13px 18px;border:0;border-right:1px solid var(--line);border-radius:0;background:var(--panel-soft,#20312a);color:var(--ink);text-align:left}
+.compact-metrics .metric-card:last-child{border-right:0}
+.compact-metrics .metric-card:hover{background:var(--panel-raised,#2c4136)}
+.compact-metrics .metric-card>span{font-size:9px;letter-spacing:1px;color:var(--muted);font-weight:700}
+.compact-metrics .metric-card strong{margin:0;font-size:25px;line-height:1.1}
+.compact-metrics .metric-card small{font-size:10px;color:var(--muted)}
+.filter-panel{margin-bottom:18px;border:1px solid var(--line);border-radius:8px;background:var(--panel,#20312a)}
+.filter-panel>summary{display:flex;align-items:center;gap:8px;min-height:44px;padding:10px 14px;cursor:pointer;list-style:none;font-size:12px;font-weight:700}
+.filter-panel>summary::-webkit-details-marker{display:none}
+.filter-panel>summary::after{content:'▾';margin-left:auto;color:var(--muted)}
+.filter-panel[open]>summary::after{content:'▴'}
+.filter-panel .filter-box{margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 8px 8px}
+#card-results{scroll-margin-top:95px}
+@media(max-width:700px){
+ .workspace-navigation nav{grid-template-columns:repeat(6,minmax(0,1fr))}
+ .options-menu>summary{min-width:0;min-height:42px;flex-direction:column;gap:3px;padding:6px 2px;font-size:9px;line-height:1.25}
+ .options-menu>summary svg{width:16px;height:16px}
+ .options-popover{right:0;max-height:calc(100dvh - 110px)}
+ .compact-metrics .metric-card{min-height:77px;padding:9px 8px}
+ .compact-metrics .metric-card>span{font-size:7px;letter-spacing:.4px}
+ .compact-metrics .metric-card strong{font-size:22px}
+ .compact-metrics .metric-card small{font-size:8px}
+}
