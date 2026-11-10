@@ -1,3 +1,3 @@
 // The display version uses major.minor.patch. The build number keeps update checks compatible.
-export const APP_VERSION = '2.7.2';
-export const APP_BUILD = 43;
+export const APP_VERSION = '2.7.3';
+export const APP_BUILD = 44;

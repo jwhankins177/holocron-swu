@@ -1,0 +1,36 @@
+/* Theme choices share the dark layout and change its surfaces, type, and accents. */
+:root[data-palette=moss]{--paper:#20261f;--panel:#2f392d;--panel-soft:#232d23;--panel-raised:#394634;--ink:#e6ddc8;--muted:#bdbfa9;--text-soft:#c8c1ad;--line:#56634d;--teal:#b89a5a;--gold:#d3b979;--primary-ink:#241f16;--overlap-fill:#9eae775c;--overlap-empty:#2f392d}
+:root[data-palette=clay]{--paper:#241d19;--panel:#3a2b23;--panel-soft:#2d221d;--panel-raised:#49352b;--ink:#e8d7c2;--muted:#c5a997;--text-soft:#cdb6a5;--line:#725244;--teal:#c0805f;--gold:#d6a383;--primary-ink:#241a16;--overlap-fill:#c0805f66;--overlap-empty:#3a2b23}
+:root[data-palette=olive]{--paper:#29291f;--panel:#3c3d2c;--panel-soft:#313225;--panel-raised:#4a4d35;--ink:#e7dfc8;--muted:#c3c0a5;--text-soft:#cbc7ae;--line:#686a4b;--teal:#c6ac73;--gold:#e0c994;--primary-ink:#25251a;--overlap-fill:#b2b77966;--overlap-empty:#3c3d2c}
+:root[data-palette=umber]{--paper:#25231e;--panel:#363a30;--panel-soft:#2c3028;--panel-raised:#424a39;--ink:#e5dcc9;--muted:#c0c7b4;--text-soft:#cad0bd;--line:#64715c;--teal:#91a181;--gold:#c8a576;--primary-ink:#1e251c;--overlap-fill:#91a18166;--overlap-empty:#363a30}
+
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]){color-scheme:dark}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(body,.workspace-navigation){background:var(--paper);color:var(--ink)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.workspace-header,.workspace-sidebar,.workspace-tools,.header-preset-list,.metrics,.view-controls,.guide-nav,.page-footer){background:var(--panel-soft);border-color:var(--line)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(button,input,select,textarea,.card-tile,.deck-card,.filter-box,.stat-panel,.settings-panel,.modal,.detail-dialog,.table-scroll,.deck-list,.guide-card,.guide-content,.deck-overview,.deck-tile,.empty,.guide-tile,.guide-reader,.guide-toc,.game-table,.across-decks,.format-panel,.deck-version,.history-modal,.game-piece){background:var(--panel);color:var(--ink);border-color:var(--line)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.metric-special,.metrics .metric-special,.tags span,.section-line h2 span,nav button.selected,.import-tabs .active,.deck-tabs .active,.favorite-tabs [aria-pressed=true],.owned-pill,.guide-hero,.detail-stats,.import-preview,.resolver-source,.resolver-choices label,.resolver-search,.resolver-results,.resolver-results button,.resolver-explanation,.resolver-impact,.resolver-impact-table,.resolver-impact caption,.resolver-impact thead th,.resolver-impact tbody th,.favorite-button,.chip,.card-info footer button,.view-controls button.active,.filter-active,.game-scoreboard>div,.game-zone){background:var(--panel-raised);color:var(--ink);border-color:var(--line)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.detail-art,.deck-art,.art,.art.horizontal,.art-fallback,.foil-badge,.game-piece img){background:var(--panel-soft);color:var(--ink)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(th,tbody tr:hover){background:var(--panel-raised);color:var(--ink)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.sync,.eyebrow,.card-code,.card-info p,.metrics small,.metrics>div>span,.guide-card p,.game-zone h3 span){color:var(--muted)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.game-table p,.across-decks p,.format-panel p,.deck-overlap-detail small){color:var(--text-soft)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.game-table h2,.game-table h3,.across-decks h2,.across-decks h3,.deck-overlap-option,.deck-overlap-selected){color:var(--ink)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.brand-icon,nav button.selected,.view-controls button.active,.deck-tabs button.active){background:var(--panel-raised);color:var(--gold)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(button.primary,.primary){background:var(--teal);border-color:var(--teal);color:var(--primary-ink)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) button.primary:hover{background:color-mix(in srgb,var(--teal),white 13%)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) button:not(.primary):hover{background:var(--panel-raised);border-color:var(--gold)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(.deck-select-list .deck-overlap-selected,.deck-select-list label){border-color:var(--line)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) .deck-select-list .deck-overlap-selected{background:var(--panel-raised);border-color:var(--gold)}
+:root:is([data-palette=moss],[data-palette=clay],[data-palette=olive],[data-palette=umber]) :is(select option,select optgroup){background:var(--panel);color:var(--ink)}
+
+.theme-picker{position:relative;flex:none}
+.theme-picker summary{cursor:pointer;list-style:none;white-space:nowrap;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--panel,#f5f7f0);color:var(--ink);font-size:11px;font-weight:600}
+.theme-picker summary::-webkit-details-marker{display:none}
+.theme-picker summary::after{content:' ▾';color:var(--muted)}
+.theme-options{position:absolute;z-index:40;top:calc(100% + 8px);right:0;width:min(360px,calc(100vw - 24px));max-height:min(68vh,460px);overflow:auto;display:grid;gap:4px;padding:8px;background:var(--panel,#f5f7f0);border:1px solid var(--line);border-radius:10px;box-shadow:0 16px 40px #0008}
+.theme-options button{width:100%;display:flex;justify-content:flex-start;align-items:center;gap:10px;padding:10px;text-align:left;border-radius:7px;background:transparent!important;border-color:transparent!important;color:var(--ink)}
+.theme-options button:hover,.theme-options button[aria-pressed=true]{background:var(--panel-raised,#e8ede2)!important;border-color:var(--line)!important}
+.theme-swatches{display:flex;flex:none;padding:3px;border-radius:5px;background:#0005}
+.theme-swatches i{display:block;width:13px;height:26px;border:1px solid #ffffff33}
+.theme-swatches i:first-child{border-radius:3px 0 0 3px}.theme-swatches i:last-child{border-radius:0 3px 3px 0}
+.theme-option-copy{display:grid;gap:2px;min-width:0}.theme-option-copy strong{font-size:12px}.theme-option-copy small{color:var(--muted);font-size:10px}
+.theme-check{margin-left:auto;color:var(--gold);font-size:17px;font-weight:800}
