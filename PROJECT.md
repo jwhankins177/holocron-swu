@@ -10,6 +10,8 @@ Private Star Wars Unlimited collection and deck manager, built with React/Vinext
 
 Collection/decks persist in D1. Optimistic revisions reject concurrent-device conflicts. Failed writes retain pending changes with retry and backup controls. Navigation warns while writes are pending. Full JSON backups include unfinished decks and notes. The local preview database is not deployed.
 
+Deck versions and manually imported format rules are included in full backups. Recent workspace restore points and solo/live game tables stay on the current device in browser storage. The solo table is a manual card-zone simulator; the live tracker records base damage, resources, initiative, leader state, and unit counters without automating card effects.
+
 ## Checks
 
 - `node node_modules/typescript/bin/tsc --noEmit`
