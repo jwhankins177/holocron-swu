@@ -87,9 +87,13 @@
 .table-counter{display:flex;align-items:center;gap:12px}.table-counter input{font-size:1.3rem;text-align:center;max-width:76px}
 .game-draw-controls{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:18px 0}
 .game-zone{margin:14px 0}.game-zone h3{margin:0 0 12px}.game-zone h3 span{font-weight:400;color:#a6c2b4}
-.game-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.game-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:12px}
+.game-cards[style]{grid-template-columns:repeat(var(--solo-columns),minmax(0,1fr))}
+.solo-card-columns{display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;margin:8px 0 16px;font-size:12px;font-weight:700}
+.solo-card-columns input{width:150px;max-width:45vw}
+.solo-card-columns output{min-width:4ch;text-align:right;font-variant-numeric:tabular-nums}
 .game-piece{display:flex;flex-direction:column;gap:7px;background:#152a25;border:1px solid #4a665a;border-radius:10px;padding:9px;min-width:0}
-.game-piece img{width:100%;max-height:210px;object-fit:contain;background:#10231e;border-radius:6px}
+.game-piece img{width:100%;aspect-ratio:5/7;object-fit:contain;background:#10231e;border-radius:6px}
 .game-piece strong{overflow-wrap:anywhere}.game-piece select{width:100%}.game-piece-counters{display:flex;flex-wrap:wrap;gap:6px}
 .game-piece-counters label{font-size:.78rem}.game-piece-counters input{width:45px!important}
 .game-notes{display:flex;flex-direction:column;gap:7px;margin-top:18px}.game-notes textarea{width:100%}
@@ -103,4 +107,4 @@
 .format-issue{border-top:1px solid #40594f;padding:10px 0}.format-issue ul{margin:8px 0}.format-panel a{color:#b9e2ce}
 .rules-editor{margin-top:16px;border-top:1px solid #40594f;padding-top:12px}.rules-editor summary{cursor:pointer}.rules-editor textarea{width:100%;margin:10px 0}
 .deck-version{margin:10px 0;padding:12px}.deck-version p{overflow-wrap:anywhere}
-@media(max-width:760px){.game-scoreboard{grid-template-columns:1fr}.game-cards{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}.game-table,.across-decks{padding:12px}}
+@media(max-width:760px){.game-scoreboard{grid-template-columns:1fr}.game-cards:not([style]){grid-template-columns:minmax(0,1fr)}.game-table,.across-decks{padding:12px}}
