@@ -1,0 +1,88 @@
+.deck-view-menu{display:flex;align-items:end;gap:10px;flex-wrap:wrap;margin:0 0 14px;padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel,#20312a)}
+.deck-view-menu label{display:grid;gap:4px;min-width:min(100%,190px);font-size:11px;font-weight:700;color:var(--ink)}
+.deck-view-menu select{width:100%;padding:9px 12px}
+.live-tracker{max-width:1100px;margin:16px auto;padding:16px;color:#e8eee9}
+.live-tracker-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.live-tracker-heading h2{font-size:22px;margin:2px 0}
+.live-tracker-heading p{font-size:11px}
+.live-eyebrow{font-size:9px;letter-spacing:1.7px;font-weight:800;color:#b8ccba}
+.live-heading-actions{display:flex;gap:7px;flex-wrap:wrap}
+.live-heading-actions button{min-height:40px}
+.live-board{max-width:1020px;margin:14px auto 0}
+.live-round-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px;background:#203832;border:1px solid #3b5a50;border-radius:12px}
+.live-round-control,.live-initiative{display:flex;align-items:center;gap:9px}
+.live-round-control>span,.live-initiative>span{font-size:11px;font-weight:700;color:#d3ded4}
+.live-round-control .table-counter input{max-width:48px}
+.live-initiative [role=group]{display:flex;gap:4px;flex-wrap:wrap}
+.live-initiative button{padding:8px 10px;min-height:38px}
+.live-initiative button[aria-pressed=true]{background:#3b7059;border-color:#91ba9b;color:#fff}
+.live-next-round{min-height:40px;font-weight:700}
+.live-player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}
+.live-player{min-width:0;padding:16px;border:1px solid #3b5a50;border-radius:12px;background:#203832}
+.live-player-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;min-height:62px}
+.live-player-title small{display:block;color:#b6c9ba;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.live-player-title strong{display:block;margin-top:4px;font-size:13px;line-height:1.3}
+.live-hp{flex:none;font-family:Manrope,Arial,sans-serif;font-size:35px;font-weight:800;line-height:1;color:#e8e6bd}
+.live-hp small{display:inline;font-size:11px;letter-spacing:0;color:#c5d5c6}
+.live-damage{padding:12px 0;border-top:1px solid #3b5a50}
+.live-damage>label,.live-resources label{display:block;margin-bottom:6px;font-size:11px;font-weight:700;color:#d4e1d6}
+.live-damage .table-counter button{width:48px;height:44px;font-size:20px}
+.live-damage .table-counter input{height:44px;font-size:22px}
+.live-resources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.live-tracker .table-counter{gap:5px}
+.live-tracker .table-counter button{min-width:34px;min-height:36px;padding:5px 7px}
+.live-tracker .table-counter input{min-width:40px;width:55px;max-width:55px;padding:5px 2px;font-size:18px;appearance:textfield}
+.live-tracker .table-counter input::-webkit-inner-spin-button,.live-tracker .table-counter input::-webkit-outer-spin-button{appearance:none;margin:0}
+.live-checks{display:flex;gap:8px 18px;flex-wrap:wrap;margin-top:14px}
+.live-checks label,.live-marker-exhausted{display:flex;align-items:center;gap:6px;font-size:11px}
+.live-checks input{width:18px;height:18px}
+.live-drawers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px;align-items:start}
+.live-drawers details{min-width:0;border:1px solid #3b5a50;border-radius:9px;background:#203832}
+.live-drawers summary{cursor:pointer;list-style:none;padding:12px;font-size:12px;font-weight:700}
+.live-drawers summary::-webkit-details-marker{display:none}
+.live-drawers summary::after{content:'▾';float:right;color:#b8ccba}
+.live-drawers details[open] summary::after{content:'▴'}
+.live-drawers summary span{margin-left:5px;color:#b8ccba}
+.live-drawers textarea{width:calc(100% - 20px);margin:0 10px 10px}
+.live-add-marker{display:flex;gap:5px;padding:0 10px 10px}
+.live-add-marker input{min-width:0;flex:1}
+.live-add-marker button{padding-inline:10px}
+.live-markers{display:grid;gap:8px;padding:0 10px 10px}
+.live-marker{padding:9px;border:1px solid #456458;border-radius:8px;background:#172b27}
+.live-marker-head{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.live-marker-head strong{flex:1;min-width:100px;overflow-wrap:anywhere}
+.live-marker-head select,.live-marker-head button{padding:6px;font-size:10px}
+.live-marker-stats{display:grid;gap:7px;margin:9px 0}
+.live-marker-stats>div{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.live-marker-stats span{font-size:11px;text-transform:capitalize}
+.live-marker .table-counter input{width:42px;min-width:42px}
+.live-setup{display:grid;gap:8px;padding:0 10px 10px}
+.live-setup label{display:grid;gap:4px;font-size:11px}
+.live-setup input{width:100%}
+.live-tracker-focused{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;width:100%;height:100dvh;max-width:none;margin:0;padding:clamp(10px,2vh,22px) clamp(10px,3vw,35px);border:0;border-radius:0;overflow:auto;background:#10231e}
+.live-tracker-focused .live-tracker-heading,.live-tracker-focused .live-board{width:min(100%,1020px);margin-inline:auto}
+.live-tracker-focused .live-board{margin-block:auto}
+@media(max-width:760px){
+ .live-tracker{padding:12px}
+ .live-round-bar{grid-template-columns:1fr auto;gap:8px}
+ .live-initiative{grid-column:1/-1;grid-row:2;flex-wrap:wrap}
+ .live-next-round{grid-column:2;grid-row:1}
+ .live-resources{grid-template-columns:1fr}
+ .live-drawers{grid-template-columns:1fr}
+ .live-tracker-focused .live-drawers{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .live-tracker-focused .live-drawers summary{padding:9px 6px;font-size:10px}
+ .live-tracker-focused .live-drawers details[open]{grid-column:1/-1}
+ .live-player{padding:11px}
+ .live-player-title{display:block;min-height:95px}
+ .live-hp{display:block;margin-top:8px;font-size:31px}
+ .live-checks{display:grid;gap:7px}
+}
+@media(max-width:450px){
+ .deck-view-menu label{flex:1;min-width:130px}
+ .live-tracker .table-counter{gap:3px}
+ .live-tracker .table-counter button{min-width:30px;padding:4px}
+ .live-tracker .table-counter input{min-width:38px;width:40px;max-width:40px}
+ .live-initiative button{padding:6px 8px;font-size:11px}
+ .live-next-round{font-size:11px;padding:8px}
+ .live-tracker-focused{padding:10px}
+}
