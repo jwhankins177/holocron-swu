@@ -33,10 +33,19 @@
 .filter-panel .filter-box{margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 8px 8px}
 #card-results{scroll-margin-top:95px}
 @media(max-width:700px){
- .workspace-navigation nav{grid-template-columns:repeat(6,minmax(0,1fr))}
- .options-menu>summary{min-width:0;min-height:42px;flex-direction:column;gap:3px;padding:6px 2px;font-size:9px;line-height:1.25}
+ .workspace-navigation{padding:7px 12px 8px}
+ .workspace-navigation .brand{display:flex;width:100%;min-height:44px;justify-content:center;gap:9px;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel,#20312a);font-size:15px;text-align:left}
+ .workspace-navigation .brand-icon{width:29px;height:30px;flex:none}
+ .workspace-navigation .brand-icon svg{width:20px;height:20px}
+ .workspace-navigation .brand small{font-size:7px;letter-spacing:.8px;margin-top:2px}
+ .workspace-navigation nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-top:5px}
+ .workspace-navigation nav>button{display:flex;width:100%;min-height:49px;align-items:center;justify-content:center;flex-direction:column;gap:3px;padding:5px 3px;white-space:normal;text-align:center;font-size:10px;line-height:1.15;border:1px solid var(--line);border-radius:7px;background:var(--panel,#20312a)}
+ .workspace-navigation nav>button.selected{background:var(--teal);color:#fff}
+ .options-menu{width:100%}
+ .options-menu>summary{min-width:0;min-height:49px;flex-direction:column;gap:3px;padding:5px 3px;font-size:10px;line-height:1.15}
  .options-menu>summary svg{width:16px;height:16px}
- .options-popover{right:0;max-height:calc(100dvh - 110px)}
+ .options-popover{right:0;max-height:calc(100dvh - 165px)}
+ #card-results{scroll-margin-top:162px}
  .compact-metrics .metric-card{min-height:77px;padding:9px 8px}
  .compact-metrics .metric-card>span{font-size:7px;letter-spacing:.4px}
  .compact-metrics .metric-card strong{font-size:22px}
