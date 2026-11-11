@@ -82,6 +82,10 @@
 .game-scoreboard{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}
 .game-scoreboard>div,.game-zone{background:#203832;border:1px solid #3b5a50;border-radius:12px;padding:14px}
 .game-scoreboard>div{display:flex;flex-direction:column;gap:8px}
+.solo-identity-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.solo-identity-cards button{display:grid;gap:5px;min-width:0;padding:5px;background:#172b27;color:#e8eee9;font-size:10px}
+.solo-identity-cards img,.solo-identity-cards .solo-art-fallback{width:100%;aspect-ratio:1.4;object-fit:contain;border-radius:5px;background:#10231e}
+.solo-identity-cards span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .game-scoreboard label,.game-piece label{display:flex;align-items:center;gap:7px}
 .game-scoreboard input[type=number],.game-piece input[type=number]{width:70px}
 .table-counter{display:flex;align-items:center;gap:12px}.table-counter input{font-size:1.3rem;text-align:center;max-width:76px}
@@ -89,13 +93,39 @@
 .game-zone{margin:14px 0}.game-zone h3{margin:0 0 12px}.game-zone h3 span{font-weight:400;color:#a6c2b4}
 .game-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr));gap:12px}
 .game-cards[style]{grid-template-columns:repeat(var(--solo-columns),minmax(0,1fr))}
-.solo-card-columns{display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;margin:8px 0 16px;font-size:12px;font-weight:700}
+.solo-board-tools{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;flex-wrap:wrap;margin:8px 0 16px}
+.solo-card-columns{display:flex;align-items:center;gap:10px;width:max-content;max-width:100%;font-size:12px;font-weight:700}
 .solo-card-columns input{width:150px;max-width:45vw}
 .solo-card-columns output{min-width:4ch;text-align:right;font-variant-numeric:tabular-nums}
+.solo-zone-links{display:flex;flex-wrap:wrap;gap:5px}
+.solo-zone-links button{padding:7px 9px;font-size:11px}
+.solo-zone-links span{margin-left:4px;color:var(--muted)}
+.game-zone{scroll-margin-top:135px}
 .game-piece{display:flex;flex-direction:column;gap:7px;background:#152a25;border:1px solid #4a665a;border-radius:10px;padding:9px;min-width:0}
+.game-piece-art{display:block;width:100%;min-width:0;padding:0;border:0;background:transparent;overflow:hidden}
+.game-piece-art:hover{background:transparent}
 .game-piece img{width:100%;aspect-ratio:5/7;object-fit:contain;background:#10231e;border-radius:6px}
+.game-piece.is-exhausted .game-piece-art{opacity:.62}
+.game-piece-subtitle{color:#b9c9c0;font-size:10px}
+.game-piece-actions{display:flex;flex-wrap:wrap;gap:5px}
+.game-piece-actions:empty{display:none}
+.game-piece-actions button{min-height:34px;padding:6px 9px;font-size:11px}
+.solo-art-fallback{display:grid;place-content:center;gap:8px;width:100%;aspect-ratio:5/7;padding:12px;background:#10231e;color:#e8eee9;text-align:center;overflow-wrap:anywhere}
+.solo-art-fallback small{color:#b9c9c0}
 .game-piece strong{overflow-wrap:anywhere}.game-piece select{width:100%}.game-piece-counters{display:flex;flex-wrap:wrap;gap:6px}
 .game-piece-counters label{font-size:.78rem}.game-piece-counters input{width:45px!important}
+.solo-inspect-overlay{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:12px;background:#07130fdf}
+.solo-inspect-dialog{width:min(520px,100%);max-height:94dvh;overflow:auto;padding:16px;background:#172b27;color:#e8eee9;border:1px solid #567263;border-radius:13px;box-shadow:0 20px 70px #0009}
+.solo-inspect-header{display:flex;align-items:start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.solo-inspect-header h2{font-size:18px}
+.solo-inspect-header p{font-size:11px}
+.solo-inspect-header button{flex:none;padding:7px 10px}
+.solo-inspect-art{display:grid;place-items:center;background:#10231e;border-radius:8px;overflow:hidden}
+.solo-inspect-art img{display:block;width:auto;max-width:100%;height:auto;max-height:62dvh;object-fit:contain}
+.solo-inspect-art .solo-art-fallback{max-height:62dvh}
+.solo-inspect-flip{width:100%;margin-top:9px}
+.solo-inspect-meta{margin-top:12px;font-size:11px;font-weight:700}
+.solo-inspect-copy{margin-top:8px;white-space:pre-line;font-size:12px}
 .game-notes{display:flex;flex-direction:column;gap:7px;margin-top:18px}.game-notes textarea{width:100%}
 .across-decks summary,.deck-version summary{cursor:pointer;font-weight:700}.deck-select-list{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}.deck-select-list label{border:1px solid #456055;border-radius:8px;padding:8px}
 .deck-select-list .deck-overlap-option,.deck-select-list .deck-overlap-selected{display:flex;align-items:flex-start;gap:8px;min-width:170px;max-width:100%;cursor:pointer;color:#e8eee9}
