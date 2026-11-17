@@ -1,11 +1,14 @@
 import {useEffect,useRef,useState} from 'react';
 import type {CSSProperties} from 'react';
 import type {Card,Deck} from './lib/model';
+import {makeId} from './lib/model';
+import type {PlayRecords,PracticeNotes,MatchRecord} from './lib/play-records';
+import {PracticePad,RecordMatch} from './PlayRecords';
 
 type Zone='deck'|'hand'|'resources'|'ground'|'space'|'discard';
 type Piece={uid:string;id:string;zone:Zone;exhausted?:boolean;damage?:number;shields?:number;experience?:number};
 type Marker={uid:string;name:string;side:'me'|'opponent';damage:number;shields:number;experience:number;exhausted:boolean};
-type Table={deckId:string;deckSignature:string;mode:'practice'|'live';round:number;initiative:'me'|'opponent'|'none';myDamage:number;opponentDamage:number;opponentHp:number;opponentName?:string;myResources:number;opponentResources:number;myReadyResources?:number;opponentReadyResources?:number;myLeader:boolean;opponentLeader:boolean;myEpicUsed?:boolean;opponentEpicUsed?:boolean;notes:string;pieces:Piece[];markers:Marker[]};
+type Table={gameId:string;deckId:string;deckSignature:string;mode:'practice'|'live';round:number;initiative:'me'|'opponent'|'none';myDamage:number;opponentDamage:number;opponentHp:number;opponentName?:string;myResources:number;opponentResources:number;myReadyResources?:number;opponentReadyResources?:number;myLeader:boolean;opponentLeader:boolean;myEpicUsed?:boolean;opponentEpicUsed?:boolean;notes:string;pieces:Piece[];markers:Marker[]};
 const zones:Zone[]=['deck','hand','resources','ground','space','discard'];
 const visibleZones:Zone[]=['hand','resources','ground','space','discard'];
 const label:Record<Zone,string>={deck:'Draw pile',hand:'Hand',resources:'Resources',ground:'Ground',space:'Space',discard:'Discard'};
@@ -15,10 +18,10 @@ const signature=(deck:Deck)=>JSON.stringify(deck.deck);
 function fresh(deck:Deck,mode:'practice'|'live'):Table{
  const all=shuffled(deck.deck.flatMap((entry,n)=>Array.from({length:entry.count},(_,i)=>({uid:`${n}-${i}`,id:entry.id,zone:'deck' as Zone}))));
  for(const piece of all.slice(0,6))piece.zone='hand';
- return {deckId:deck.uid,deckSignature:signature(deck),mode,round:1,initiative:'none',myDamage:0,opponentDamage:0,opponentHp:30,opponentName:'',myResources:0,opponentResources:0,myReadyResources:0,opponentReadyResources:0,myLeader:false,opponentLeader:false,myEpicUsed:false,opponentEpicUsed:false,notes:'',pieces:mode==='practice'?all:[],markers:[]};
+ return {gameId:makeId(),deckId:deck.uid,deckSignature:signature(deck),mode,round:1,initiative:'none',myDamage:0,opponentDamage:0,opponentHp:30,opponentName:'',myResources:0,opponentResources:0,myReadyResources:0,opponentReadyResources:0,myLeader:false,opponentLeader:false,myEpicUsed:false,opponentEpicUsed:false,notes:'',pieces:mode==='practice'?all:[],markers:[]};
 }
 function read(deck:Deck,mode:'practice'|'live'){
- try{const raw=localStorage.getItem(`holocron-table-${mode}-${deck.uid}`);if(raw){const state=JSON.parse(raw) as Table;if(state.deckId===deck.uid&&state.mode===mode&&Array.isArray(state.pieces))return state}}catch{}
+ try{const raw=localStorage.getItem(`holocron-table-${mode}-${deck.uid}`);if(raw){const state=JSON.parse(raw) as Table;if(state.deckId===deck.uid&&state.mode===mode&&Array.isArray(state.pieces))return {...state,gameId:state.gameId||makeId()}}}catch{}
  return fresh(deck,mode);
 }
 function SoloArtwork({card,back=false}:{card:Card|undefined;back?:boolean}){
@@ -42,7 +45,8 @@ function SoloPiece({piece,card,zone,onMove,onChange,onInspect}:{piece:Piece;card
   {['ground','space'].includes(zone)&&<div className="game-piece-counters"><label>Damage <input type="number" min="0" max="99" value={piece.damage??0} onChange={e=>onChange(piece.uid,{damage:cap(Number(e.target.value))})}/></label><label>Shield <input type="number" min="0" max="99" value={piece.shields??0} onChange={e=>onChange(piece.uid,{shields:cap(Number(e.target.value))})}/></label><label>Experience <input type="number" min="0" max="99" value={piece.experience??0} onChange={e=>onChange(piece.uid,{experience:cap(Number(e.target.value))})}/></label></div>}
  </article>;
 }
-export default function GameTable({deck,byId,mode}:{deck:Deck;byId:ReadonlyMap<string,Card>;mode:'practice'|'live'}){
+export default function GameTable({deck,byId,mode,records,onPractice,onMatch}:{deck:Deck;byId:ReadonlyMap<string,Card>;mode:'practice'|'live';records?:PlayRecords;onPractice:(notes:PracticeNotes)=>boolean;onMatch:(record:MatchRecord)=>boolean}){
+ const [notesOpen,setNotesOpen]=useState(false),[resultOpen,setResultOpen]=useState(false);
  const [state,setState]=useState<Table>(()=>read(deck,mode));
  const [cardColumns,setCardColumns]=useState(()=>{try{const value=Number(localStorage.getItem('holocron-solo-card-columns'));return Number.isInteger(value)&&value>=0&&value<=8?value:0}catch{return 0}});
  const [markerName,setMarkerName]=useState('');
@@ -61,13 +65,15 @@ export default function GameTable({deck,byId,mode}:{deck:Deck;byId:ReadonlyMap<s
  const move=(uid:string,zone:Zone)=>setState(old=>({...old,pieces:old.pieces.map(p=>p.uid===uid?{...p,zone,exhausted:false}:p)}));
  const pieceChange=(uid:string,patch:Partial<Piece>)=>setState(old=>({...old,pieces:old.pieces.map(p=>p.uid===uid?{...p,...patch}:p)}));
  const draw=(amount:number)=>setState(old=>{const cards=old.pieces.filter(p=>p.zone==='deck').slice(0,amount);const ids=new Set(cards.map(p=>p.uid));return {...old,pieces:old.pieces.map(p=>ids.has(p.uid)?{...p,zone:'hand' as Zone}:p)}});
- const reset=()=>{if(confirm('Start a new game? The current table and notes will be cleared.'))setState(fresh(deck,mode))};
+ const reset=()=>{if(confirm('Start a new game? Save the current result first if you want it in match history. Practice notes will stay saved.'))setState(fresh(deck,mode))};
  const hp=byId.get(deck.base)?.hp??30;
  const pile=(zone:Zone)=>state.pieces.filter(p=>p.zone===zone);
  const inspect=(id:string)=>{setInspectBack(false);setInspectId(id)};
  const inspectedCard=inspectId?byId.get(inspectId):undefined;
  const nextSoloRound=()=>setState(old=>({...old,round:Math.min(99,old.round+1),pieces:old.pieces.map(piece=>['resources','ground','space'].includes(piece.zone)?{...piece,exhausted:false}:piece)}));
  const counter=(value:number,onChange:(n:number)=>void,name:string)=> <div className="table-counter"><button aria-label={`Remove ${name}`} onClick={()=>onChange(cap(value-1))}>−</button><input aria-label={name} type="number" min="0" max="99" value={value} onChange={e=>onChange(cap(Number(e.target.value)))}/><button aria-label={`Add ${name}`} onClick={()=>onChange(cap(value+1))}>+</button></div>;
+ const savedResult=records?.matches.find(m=>m.uid===state.gameId);
+ const overlays=<>{notesOpen&&<PracticePad deck={deck} notes={records?.practice.find(p=>p.deckId===deck.uid)} onSave={onPractice} onClose={()=>setNotesOpen(false)}/>} {resultOpen&&<RecordMatch record={{uid:state.gameId,deckId:deck.uid,deckName:deck.name,leader:deck.leader,base:deck.base,opponent:state.opponentName??'',opponentLeader:savedResult?.opponentLeader??'',opponentBase:savedResult?.opponentBase??'',result:savedResult?.result??'win',playedAt:savedResult?.playedAt??new Date().toISOString(),rounds:state.round,myDamage:state.myDamage,opponentDamage:state.opponentDamage,notes:state.notes,...savedResult}} byId={byId} onSave={onMatch} onClose={()=>setResultOpen(false)}/>}</>;
  if(mode==='live'){
   const sides=([
    {key:'my',title:'My base',name:byId.get(deck.base)?.name??'Base',hp,damage:state.myDamage,resources:state.myResources??0,ready:state.myReadyResources??state.myResources??0,leader:state.myLeader,epic:!!state.myEpicUsed},
@@ -76,8 +82,8 @@ export default function GameTable({deck,byId,mode}:{deck:Deck;byId:ReadonlyMap<s
   const changeResources=(side:'my'|'opponent',next:number)=>setState(old=>{const total=cap(next),resourceKey=side==='my'?'myResources':'opponentResources',readyKey=side==='my'?'myReadyResources':'opponentReadyResources',previous=old[resourceKey]??0,ready=old[readyKey]??previous;return {...old,[resourceKey]:total,[readyKey]:Math.min(total,Math.max(0,ready+(total-previous)))}});
   const nextRound=()=>setState(old=>({...old,round:Math.min(99,old.round+1),myReadyResources:old.myResources??0,opponentReadyResources:old.opponentResources??0,markers:(old.markers??[]).map(marker=>({...marker,exhausted:false}))}));
   const markerChange=(uid:string,patch:Partial<Marker>)=>setState(old=>({...old,markers:(old.markers??[]).map(marker=>marker.uid===uid?{...marker,...patch}:marker)}));
-  return <section className={'game-table live-tracker'+(focused?' live-tracker-focused':'')} aria-label="In-person game tracker">
-   <div className="live-tracker-heading"><div><span className="live-eyebrow">IN-PERSON GAME</span><h2>Live tracker</h2><p>{deck.name} · saved on this device{focused&&wakeStatus==='awake'?' · screen awake':focused&&wakeStatus==='unavailable'?' · check device sleep settings':''}</p></div><div className="live-heading-actions"><button aria-pressed={focused} onClick={()=>setFocused(!focused)}>{focused?'Exit focus':'Focus screen'}</button><button onClick={reset}>New game</button></div></div>
+  return <section className={'game-table live-tracker'+(focused?' live-tracker-focused':'')} aria-label="In-person game tracker">{overlays}
+   <div className="live-tracker-heading"><div><span className="live-eyebrow">IN-PERSON GAME</span><h2>Live tracker</h2><p>{deck.name} · saved on this device{focused&&wakeStatus==='awake'?' · screen awake':focused&&wakeStatus==='unavailable'?' · check device sleep settings':''}</p></div><div className="live-heading-actions"><button onClick={()=>setNotesOpen(true)}>Practice notes</button><button onClick={()=>setResultOpen(true)}>{savedResult?'Edit result':'Save result'}</button><button aria-pressed={focused} onClick={()=>setFocused(!focused)}>{focused?'Exit focus':'Focus screen'}</button><button onClick={reset}>New game</button></div></div>
    <div className="live-board">
     <div className="live-round-bar"><div className="live-round-control"><span>Round</span>{counter(state.round,n=>change({round:Math.max(1,n)}),'round')}</div><div className="live-initiative"><span>Initiative</span><div role="group" aria-label="Initiative">{([['me','Mine'],['opponent','Opponent'],['none','Unclaimed']] as const).map(([value,text])=><button key={value} aria-pressed={state.initiative===value} onClick={()=>change({initiative:value})}>{text}</button>)}</div></div><button className="live-next-round" onClick={nextRound}>Next round · ready all</button></div>
     <div className="live-player-grid">{sides.map(side=>{const mine=side.key==='my',damageKey=mine?'myDamage':'opponentDamage',readyKey=mine?'myReadyResources':'opponentReadyResources',leaderKey=mine?'myLeader':'opponentLeader',epicKey=mine?'myEpicUsed':'opponentEpicUsed';return <div className="live-player" key={side.key}><div className="live-player-title"><div><small>{side.title}</small>{side.name&&<strong>{side.name}</strong>}</div><span className="live-hp" aria-label={`${side.title} HP remaining`}>{Math.max(0,side.hp-side.damage)}<small> / {side.hp} HP</small></span></div><div className="live-damage"><label>Base damage</label>{counter(side.damage,n=>change({[damageKey]:n}),`${side.key} base damage`)}</div><div className="live-resources"><div><label>Total resources</label>{counter(side.resources,n=>changeResources(side.key,n),`${side.key} resources`)}</div><div><label>Ready</label>{counter(side.ready,n=>change({[readyKey]:Math.min(side.resources,n)}),`${side.key} ready resources`)}</div></div><div className="live-checks"><label><input type="checkbox" checked={side.leader} onChange={e=>change({[leaderKey]:e.target.checked})}/>Leader deployed</label><label><input type="checkbox" checked={side.epic} onChange={e=>change({[epicKey]:e.target.checked})}/>Epic action used</label></div></div>})}</div>
@@ -85,7 +91,7 @@ export default function GameTable({deck,byId,mode}:{deck:Deck;byId:ReadonlyMap<s
    </div>
   </section>;
  }
- return <section className="game-table">
+ return <section className="game-table">{overlays}<button className="practice-open" onClick={()=>setNotesOpen(true)}>Practice notes</button>
   <div className="section-line"><div><h2>Solo play table</h2><p>Draw through the deck, tap art to read a card, and move it as you play. Card effects stay manual.</p></div><button onClick={reset}>New game</button></div>
   {state.deckSignature!==signature(deck)&&<p className="warning">This deck changed after the current game began. Choose New game to shuffle the latest build.</p>}
   <div className="game-scoreboard">

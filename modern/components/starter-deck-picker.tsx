@@ -5,8 +5,8 @@ import Modal from './modal';
 import {starterDecks,starterSource,sameDeckList,type StarterDeck} from '../lib/starter-decks';
 import type {Card,Deck} from '../lib/model';
 
-export default function StarterDeckPicker({byId,decks,onImport,onClose}:{byId:ReadonlyMap<string,Card>;decks:Deck[];onImport:(starter:StarterDeck)=>string|undefined;onClose:()=>void}){
- const [id,setId]=useState(''),[confirmed,setConfirmed]=useState(false),[error,setError]=useState('');
+export default function StarterDeckPicker({byId,decks,onImport,onClose,initialId=''}:{initialId?:string;byId:ReadonlyMap<string,Card>;decks:Deck[];onImport:(starter:StarterDeck)=>string|undefined;onClose:()=>void}){
+ const [id,setId]=useState(initialId),[confirmed,setConfirmed]=useState(false),[error,setError]=useState('');
  const selected=starterDecks.find(deck=>deck.id===id);
  const existing=selected?decks.find(deck=>sameDeckList(deck,selected)):undefined;
  const cardName=(id:string)=>{const card=byId.get(id);return card?card.name+(card.subtitle?' · '+card.subtitle:''):id};

@@ -6,6 +6,7 @@ export function readHistory(storage:Storage,key:string,revision:number|string):C
 }
 export function writeHistory(storage:Storage,key:string,revision:number|string,items:ChangePoint[]){if(key)storage.setItem(storageKey(key),JSON.stringify({revision:String(revision),items:items.slice(0,15)}))}
 export function changeLabel(before:Workspace,after:Workspace){
+ if(before.playRecords!==after.playRecords)return 'Game records or practice notes';
  if(before.collection!==after.collection)return 'Collection change';
  if(before.decks!==after.decks)return 'Deck change';
  if(before.deckVersions!==after.deckVersions)return 'Deck version change';

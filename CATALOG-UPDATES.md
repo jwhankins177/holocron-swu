@@ -1,0 +1,11 @@
+# Hosted catalog and news refresh
+
+The owner-private hosted Site exposes a shared update writer, `POST /api/updates`, with JSON `{"action":"refresh"}`. It refreshes SWU-DB's set index and all listed sets, validates IDs and completeness, stages chunked D1 snapshots, atomically switches the active catalog, and separately caches official dated news metadata. It never writes user workspaces. A failed catalog or news check is recorded independently and retains previous data.
+
+For an unattended run, use Sites `get_site` for project `appgprj_6ae91892f71c81918d043793fc1dec06` and verify it is still owner-private. Obtain the returned service credential in memory; send it only to the exact Site URL as `OAI-Sites-Authorization: Bearer <credential>`. Never put credentials into source, prompts, files or logs. Dispatch authenticates and consumes this header; no user identity is expected for shared data. Do not continue using this writer after a change to public/shared access without adding narrower authorization.
+
+POST to `https://jonathon-swu-holocron.jhankins639.chatgpt.site/api/updates`, then GET that same endpoint and verify `checkedAt`, `newsCheckedAt`, `catalogError`, and `newsError`. Both error fields must be null for a wholly successful check. A `busy` response means another check holds the five-minute lease; retry after it finishes. Repeated requests within one minute are coalesced. Failures can be retried later; existing catalog/news stays usable. Routine data refreshes do not require app republishing or version bumps.
+
+Sources are the documented `https://api.swu-db.com/sets` and `https://api.swu-db.com/cards/{set}` endpoints and the official public `https://admin.starwarsunlimited.com/api/articles` feed used by the Star Wars Unlimited website. New articles link to the official site. Publication dates come from source metadata. Rules news never silently changes the verified rules snapshot or a visitor's imported rules.
+
+GET `/api/catalog` reads the active snapshot or falls back to the bundled catalog before any update. POST `/api/updates` with `{"action":"rollback"}` restores the immediately prior saved snapshot. Rollbacks preserve all collection quantities, foil variants, mappings, and decks. The in-app News & updates page exposes check status, source failures, changes, manual checks and rollback.

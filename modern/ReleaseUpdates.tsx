@@ -1,0 +1,2 @@
+import {releases} from './lib/releases';
+export default function ReleaseUpdates(){return <section className="release-updates"><h2>Holocron updates</h2><p>The last five published versions. Catalog checks update card data separately from app releases.</p>{releases.slice(0,5).map((release,i)=><article key={release.version}><div className="section-line"><h3>v{release.version}{i===0?' · Current':''}</h3><time dateTime={release.date}>{release.date}</time></div><strong>{release.title}</strong><ul>{release.changes.map(line=><li key={line}>{line}</li>)}</ul></article>)}</section>}
