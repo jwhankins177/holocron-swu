@@ -1,5 +1,6 @@
 import {validatePlayRecords,type PlayRecords} from './play-records.ts';
 import {validateCardDisplay} from './card-display.ts';
+import type {HighlightSettings} from './highlights.ts';
 import type {QuickFilter,SortRule} from './card-display.ts';
 export type Card={id:string;name:string;subtitle:string;type:string;set:string;number:string;aspects:string[];traits:string[];keywords:string[];cost:number|null;power:number|null;hp:number|null;arena:string;rarity:string;artist:string;variant:string;image:string;back:string;text:string;backText:string;epic:string;unique:boolean;core:string;canonical:string;foilOnly?:boolean};
 export type Entry={id:string;count:number};
@@ -14,7 +15,7 @@ export type Favorites={cards:string[];decks:string[]};
 export type CardList={uid:string;name:string;cards:string[]};
 export type DeckFolder={uid:string;name:string;deckIds:string[]};
 export type HolocronTheme='dark'|'light'|'moss'|'clay'|'olive'|'umber';
-export type Workspace={achievementUnlocks?:Record<string,string>;playRecords?:PlayRecords;collection:Owned[];decks:Deck[];deckVersions?:DeckVersion[];formatRules?:FormatRules;favorites?:Favorites;resolutions?:CollectionResolution[];lists?:CardList[];settings?:{theme?:HolocronTheme;view?:'grid'|'table'|'large';size?:number;cardColumns?:number;deckFolders?:DeckFolder[];rarityBorders?:boolean;showDeckMembership?:boolean;cardSort?:SortRule[];quickFilters?:QuickFilter[]}};
+export type Workspace={achievementUnlocks?:Record<string,string>;playRecords?:PlayRecords;collection:Owned[];decks:Deck[];deckVersions?:DeckVersion[];formatRules?:FormatRules;favorites?:Favorites;resolutions?:CollectionResolution[];lists?:CardList[];settings?:{theme?:HolocronTheme;view?:'grid'|'table'|'large';size?:number;cardColumns?:number;deckFolders?:DeckFolder[];rarityBorders?:boolean;highlight?:HighlightSettings;showDeckMembership?:boolean;cardSort?:SortRule[];quickFilters?:QuickFilter[]}};
 export type Catalog={cards:Card[];sets:{code:string;name:string}[];updated:string;sources:string[]};
 export const emptyWorkspace:Workspace={collection:[],decks:[]};
 export function normalizeId(s:string){const m=s.trim().toUpperCase().match(/^([A-Z0-9]+)[_ -]([A-Z]*\d+[A-Z]*(?:-\d+)?)$/);if(!m)throw Error(`Invalid card ID: ${s}`);return `${m[1]}_${/^\d+$/.test(m[2])?m[2].padStart(3,'0'):m[2]}`}

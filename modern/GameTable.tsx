@@ -4,6 +4,8 @@ import type {Card,Deck} from './lib/model';
 import {makeId} from './lib/model';
 import type {PlayRecords,PracticeNotes,MatchRecord} from './lib/play-records';
 import {PracticePad,RecordMatch} from './PlayRecords';
+import {generatedPractice} from './lib/practice-plan';
+import Modal from './components/modal';
 
 type Zone='deck'|'hand'|'resources'|'ground'|'space'|'discard';
 type Piece={uid:string;id:string;zone:Zone;exhausted?:boolean;damage?:number;shields?:number;experience?:number};
@@ -15,14 +17,15 @@ const label:Record<Zone,string>={deck:'Draw pile',hand:'Hand',resources:'Resourc
 const cap=(n:number)=>Math.max(0,Math.min(99,n));
 function shuffled<T>(items:T[]){const out=[...items];for(let i=out.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[out[i],out[j]]=[out[j],out[i]]}return out}
 const signature=(deck:Deck)=>JSON.stringify(deck.deck);
-function fresh(deck:Deck,mode:'practice'|'live'):Table{
+function fresh(deck:Deck,mode:'practice'|'live',byId:ReadonlyMap<string,Card>,practice?:PracticeNotes):Table{
+ const plan=practice??generatedPractice(deck,byId);const startingNotes=[plan.plan,plan.opening,plan.resources,plan.matchups].filter(Boolean).join('\n\n').slice(0,5000);
  const all=shuffled(deck.deck.flatMap((entry,n)=>Array.from({length:entry.count},(_,i)=>({uid:`${n}-${i}`,id:entry.id,zone:'deck' as Zone}))));
  for(const piece of all.slice(0,6))piece.zone='hand';
- return {gameId:makeId(),deckId:deck.uid,deckSignature:signature(deck),mode,round:1,initiative:'none',myDamage:0,opponentDamage:0,opponentHp:30,opponentName:'',myResources:0,opponentResources:0,myReadyResources:0,opponentReadyResources:0,myLeader:false,opponentLeader:false,myEpicUsed:false,opponentEpicUsed:false,notes:'',pieces:mode==='practice'?all:[],markers:[]};
+ return {gameId:makeId(),deckId:deck.uid,deckSignature:signature(deck),mode,round:1,initiative:'none',myDamage:0,opponentDamage:0,opponentHp:30,opponentName:'',myResources:0,opponentResources:0,myReadyResources:0,opponentReadyResources:0,myLeader:false,opponentLeader:false,myEpicUsed:false,opponentEpicUsed:false,notes:startingNotes,pieces:mode==='practice'?all:[],markers:[]};
 }
-function read(deck:Deck,mode:'practice'|'live'){
+function read(deck:Deck,mode:'practice'|'live',byId:ReadonlyMap<string,Card>,practice?:PracticeNotes){
  try{const raw=localStorage.getItem(`holocron-table-${mode}-${deck.uid}`);if(raw){const state=JSON.parse(raw) as Table;if(state.deckId===deck.uid&&state.mode===mode&&Array.isArray(state.pieces))return {...state,gameId:state.gameId||makeId()}}}catch{}
- return fresh(deck,mode);
+ return fresh(deck,mode,byId,practice);
 }
 function SoloArtwork({card,back=false}:{card:Card|undefined;back?:boolean}){
  const source=back&&card?.back?card.back:card?.image;
@@ -46,8 +49,8 @@ function SoloPiece({piece,card,zone,onMove,onChange,onInspect}:{piece:Piece;card
  </article>;
 }
 export default function GameTable({deck,byId,mode,records,onPractice,onMatch}:{deck:Deck;byId:ReadonlyMap<string,Card>;mode:'practice'|'live';records?:PlayRecords;onPractice:(notes:PracticeNotes)=>boolean;onMatch:(record:MatchRecord)=>boolean}){
- const [notesOpen,setNotesOpen]=useState(false),[resultOpen,setResultOpen]=useState(false);
- const [state,setState]=useState<Table>(()=>read(deck,mode));
+ const [notesOpen,setNotesOpen]=useState(false),[resultOpen,setResultOpen]=useState(false),[resetOpen,setResetOpen]=useState(false);
+ const [state,setState]=useState<Table>(()=>read(deck,mode,byId,records?.practice.find(p=>p.deckId===deck.uid)));
  const [cardColumns,setCardColumns]=useState(()=>{try{const value=Number(localStorage.getItem('holocron-solo-card-columns'));return Number.isInteger(value)&&value>=0&&value<=8?value:0}catch{return 0}});
  const [markerName,setMarkerName]=useState('');
  const [focused,setFocused]=useState(false);
@@ -55,7 +58,7 @@ export default function GameTable({deck,byId,mode,records,onPractice,onMatch}:{d
  const [inspectBack,setInspectBack]=useState(false);
  const [wakeStatus,setWakeStatus]=useState<'off'|'awake'|'unavailable'>('off');
  const wakeRef=useRef<WakeLockSentinel|null>(null);
- useEffect(()=>{setState(read(deck,mode))},[deck.uid,mode]);
+ useEffect(()=>{setState(read(deck,mode,byId,records?.practice.find(p=>p.deckId===deck.uid)))},[deck.uid,mode]);
  useEffect(()=>{try{localStorage.setItem(`holocron-table-${mode}-${deck.uid}`,JSON.stringify(state))}catch{}},[state,deck.uid,mode]);
  useEffect(()=>{if(mode==='practice')try{localStorage.setItem('holocron-solo-card-columns',String(cardColumns))}catch{}},[cardColumns,mode]);
  useEffect(()=>{if(!focused)return;const before=document.body.style.overflow;document.body.style.overflow='hidden';window.scrollTo(0,0);const escape=(event:KeyboardEvent)=>{if(event.key==='Escape')setFocused(false)};window.addEventListener('keydown',escape);return()=>{document.body.style.overflow=before;window.removeEventListener('keydown',escape)}},[focused]);
@@ -65,7 +68,7 @@ export default function GameTable({deck,byId,mode,records,onPractice,onMatch}:{d
  const move=(uid:string,zone:Zone)=>setState(old=>({...old,pieces:old.pieces.map(p=>p.uid===uid?{...p,zone,exhausted:false}:p)}));
  const pieceChange=(uid:string,patch:Partial<Piece>)=>setState(old=>({...old,pieces:old.pieces.map(p=>p.uid===uid?{...p,...patch}:p)}));
  const draw=(amount:number)=>setState(old=>{const cards=old.pieces.filter(p=>p.zone==='deck').slice(0,amount);const ids=new Set(cards.map(p=>p.uid));return {...old,pieces:old.pieces.map(p=>ids.has(p.uid)?{...p,zone:'hand' as Zone}:p)}});
- const reset=()=>{if(confirm('Start a new game? Save the current result first if you want it in match history. Practice notes will stay saved.'))setState(fresh(deck,mode))};
+ const reset=()=>setResetOpen(true);
  const hp=byId.get(deck.base)?.hp??30;
  const pile=(zone:Zone)=>state.pieces.filter(p=>p.zone===zone);
  const inspect=(id:string)=>{setInspectBack(false);setInspectId(id)};
@@ -73,7 +76,7 @@ export default function GameTable({deck,byId,mode,records,onPractice,onMatch}:{d
  const nextSoloRound=()=>setState(old=>({...old,round:Math.min(99,old.round+1),pieces:old.pieces.map(piece=>['resources','ground','space'].includes(piece.zone)?{...piece,exhausted:false}:piece)}));
  const counter=(value:number,onChange:(n:number)=>void,name:string)=> <div className="table-counter"><button aria-label={`Remove ${name}`} onClick={()=>onChange(cap(value-1))}>−</button><input aria-label={name} type="number" min="0" max="99" value={value} onChange={e=>onChange(cap(Number(e.target.value)))}/><button aria-label={`Add ${name}`} onClick={()=>onChange(cap(value+1))}>+</button></div>;
  const savedResult=records?.matches.find(m=>m.uid===state.gameId);
- const overlays=<>{notesOpen&&<PracticePad deck={deck} notes={records?.practice.find(p=>p.deckId===deck.uid)} onSave={onPractice} onClose={()=>setNotesOpen(false)}/>} {resultOpen&&<RecordMatch record={{uid:state.gameId,deckId:deck.uid,deckName:deck.name,leader:deck.leader,base:deck.base,opponent:state.opponentName??'',opponentLeader:savedResult?.opponentLeader??'',opponentBase:savedResult?.opponentBase??'',result:savedResult?.result??'win',playedAt:savedResult?.playedAt??new Date().toISOString(),rounds:state.round,myDamage:state.myDamage,opponentDamage:state.opponentDamage,notes:state.notes,...savedResult}} byId={byId} onSave={onMatch} onClose={()=>setResultOpen(false)}/>}</>;
+ const overlays=<>{resetOpen&&<Modal label="Start a new game" onDismiss={()=>setResetOpen(false)}><section className="modal play-pad"><h2>Start a new game?</h2><p>Save the current result first if you want it in match history. The new game will start with this deck’s practice notes.</p><div className="actions"><button className="primary" onClick={()=>{setState(fresh(deck,mode,byId,records?.practice.find(p=>p.deckId===deck.uid)));setResetOpen(false)}}>Start new game</button><button onClick={()=>setResetOpen(false)}>Keep current game</button></div></section></Modal>}{notesOpen&&<PracticePad deck={deck} suggested={generatedPractice(deck,byId)} notes={records?.practice.find(p=>p.deckId===deck.uid)??generatedPractice(deck,byId)} onSave={onPractice} onClose={()=>setNotesOpen(false)}/>} {resultOpen&&<RecordMatch record={{uid:state.gameId,deckId:deck.uid,deckName:deck.name,leader:deck.leader,base:deck.base,opponent:state.opponentName??'',opponentLeader:savedResult?.opponentLeader??'',opponentBase:savedResult?.opponentBase??'',result:savedResult?.result??'win',playedAt:savedResult?.playedAt??new Date().toISOString(),rounds:state.round,myDamage:state.myDamage,opponentDamage:state.opponentDamage,notes:state.notes,...savedResult}} byId={byId} onSave={onMatch} onClose={()=>setResultOpen(false)}/>}</>;
  if(mode==='live'){
   const sides=([
    {key:'my',title:'My base',name:byId.get(deck.base)?.name??'Base',hp,damage:state.myDamage,resources:state.myResources??0,ready:state.myReadyResources??state.myResources??0,leader:state.myLeader,epic:!!state.myEpicUsed},

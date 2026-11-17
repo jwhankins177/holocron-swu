@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {generatedPractice} from '../modern/lib/practice-plan.ts';
+import {validatePlayRecords} from '../modern/lib/play-records.ts';
+const card=(id,name,type,cost,extra={})=>({id,name,type,cost,subtitle:'',set:'TST',number:id.split('_')[1],aspects:[],traits:[],keywords:[],power:null,hp:null,arena:'',rarity:'Common',artist:'',variant:'Normal',image:'',back:'',text:'',backText:'',epic:'',unique:false,core:name+'||'+type,canonical:id,...extra});
+const leader=card('TST_001','Leader','Leader',5,{aspects:['Command'],text:'Action: Read this actual printed reminder.'});
+const base=card('TST_002','Base','Base',null,{aspects:['Vigilance'],hp:30});
+const early=card('TST_003','Opening unit','Unit',2,{arena:'Ground',aspects:['Command']});
+const late=card('TST_004','Late unit','Unit',7,{arena:'Space',aspects:['Aggression']});
+const byId=new Map([leader,base,early,late].map(c=>[c.id,c]));
+const deck={uid:'deck1',name:'Test deck',author:'',leader:leader.id,base:base.id,deck:[{id:early.id,count:3},{id:late.id,count:2}],sideboard:[],notes:'My saved reminder'};
+test('practice notes use actual deck counts, card names and baseline costs',()=>{const n=generatedPractice(deck,byId);assert.match(n.plan,/5 main-deck copies · 3 ground-unit copies · 2 space-unit copies/);assert.match(n.plan,/actual printed reminder/);assert.match(n.plan,/My saved reminder/);assert.match(n.opening,/3× Opening unit \(2 resources\)/);assert.match(n.resources,/2× Late unit \(9 resources\)/);assert.doesNotMatch(n.opening,/Late unit/);assert.equal(n.deckId,deck.uid)});
+test('missing catalog and incomplete decks generate honest usable fallbacks',()=>{const n=generatedPractice({...deck,leader:'',base:'',deck:[{id:'MISSING_001',count:4}]},byId);assert.match(n.plan,/4 main-deck copies are not in the catalog/);assert.match(n.opening,/No known units/);assert.match(n.opening,/printed costs/);assert.match(n.matchups,/No known space units/)});
+test('generated notes are bounded, exportable and do not mutate decks',()=>{const input=structuredClone(deck);input.notes='X'.repeat(20000);const before=structuredClone(input);const n=generatedPractice(input,byId);assert.deepEqual(input,before);for(const key of ['plan','opening','resources','matchups'])assert.ok(n[key].length<=5000);assert.deepEqual(validatePlayRecords({practice:[n],matches:[]}).practice[0],n)});

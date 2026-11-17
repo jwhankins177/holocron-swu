@@ -3,6 +3,7 @@
 import {useId,useMemo,useRef,useState} from 'react';
 import {Check,Search,X} from 'lucide-react';
 import Modal from './modal';
+import CardList,{CardArtButton} from './card-list';
 import {effectiveCollection,normalizeId,resolutionPreview,setCollectionResolution,type Card,type CollectionResolution,type Workspace} from '../lib/model';
 
 type Props={workspace:Workspace;cards:Card[];sourceId:string;onSave:(resolution:CollectionResolution|null)=>boolean;onDismiss:()=>void};
@@ -91,11 +92,7 @@ function ResolverDialog({workspace,cards,sourceId,onSave,onDismiss}:Props){
      <div className="resolver-search"><Search size={17} aria-hidden="true"/><input id={`${prefix}-search`} type="search" value={query} placeholder="Name, subtitle, ID, type or set…" onChange={event=>edit(()=>setQuery(event.target.value))}/></div>
      <p className="resolver-help">Search the full catalog, including alternate printings and available tokens. Select the exact printing you own.</p>
      <div className="resolver-search-status" role="status" aria-live="polite">{query.trim()?results.count?`${results.count.toLocaleString()} ${results.count===1?'match':'matches'}${results.count>24?' · showing the first 24; refine your search to see more.':''}`:'No catalog matches. Try a card name or set, or keep the item as a token or other collection item.':'Enter a name, ID, type or set to search.'}</div>
-     {results.cards.length>0&&<div className="resolver-results" aria-label="Catalog search results">
-      {results.cards.map(card=><button type="button" key={card.id} className={selectedCard?.id===card.id?'is-selected':''} aria-pressed={selectedCard?.id===card.id} onClick={()=>edit(()=>setTargetId(card.id))}>
-       <span><strong>{card.name}{card.subtitle?` — ${card.subtitle}`:''}</strong><small>{card.id} · {card.type} · {card.variant||'Standard'}</small></span><span className="resolver-result-check" aria-hidden="true">{selectedCard?.id===card.id?<Check size={16}/>:null}</span>
-      </button>)}
-     </div>}
+     {results.cards.length>0&&<CardList byId={byId} entries={results.cards.map(card=>({id:card.id,detail:card.id===selectedCard?.id?'Selected printing':card.variant}))} label="Catalog search results" onSelect={card=>edit(()=>setTargetId(card.id))} selectLabel="Map to this card"/>}
      <label htmlFor={`${prefix}-target`}>Catalog ID <span>(select above or enter an exact ID)</span></label>
      <input id={`${prefix}-target`} value={targetId} placeholder="Example: SOR_001" maxLength={80} spellCheck={false} onChange={event=>edit(()=>setTargetId(event.target.value))} aria-describedby={`${prefix}-target-help`}/>
      <p id={`${prefix}-target-help`} className={`resolver-help${selectedCard?' resolver-match':''}`}>{selectedCard?`Selected: ${selectedCard.name}${selectedCard.subtitle?` — ${selectedCard.subtitle}`:''} · ${selectedCard.id}`:'The destination must already exist in the catalog. No match is selected automatically.'}</p>

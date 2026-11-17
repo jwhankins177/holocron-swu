@@ -1,3 +1,4 @@
+import {CardArtButton} from './components/card-list';
 import {compareAspects,orderedAspects} from './lib/card-display';
 import {useEffect,useMemo,useState} from 'react';
 import {aspectPenalty,deckWarnings,probability} from './lib/model';
@@ -184,7 +185,7 @@ export default function GuidedDeck({deck,cards,byId,owned,premierIds,onEdit,onDe
        const isChosen=card.id===deck.leader||card.id===deck.base;
        const unavailable=choosing?isChosen:copies>=3||ownedOnly&&copies>=ownedCount||section==='sideboard'&&sideTotal>=10;
        return <li key={card.id}>
-        {candidateView!=='rows'&&<button className="guided-result-art" aria-label={'View '+card.name} onClick={()=>onDetail(card)}><img loading="lazy" src={card.image} alt={card.name}/></button>}
+        {candidateView!=='rows'&&<CardArtButton className="guided-result-art" card={card} onInspect={onDetail}/>}
         <div><button className="text-button" onClick={()=>onDetail(card)}><b>{card.name}</b>{card.subtitle&&<small>{card.subtitle}</small>}</button>
          <small>{orderedAspects(card.aspects).join(' / ')||'Neutral'} · {card.arena||card.type} · {ownedCount} owned{!choosing?` · ${copies}/3 in deck + sideboard`:''}</small></div>
         {!choosing&&card.cost!==null&&<strong className={penalty?'warning':''}>{card.cost+penalty} cost{penalty>0?` (+${penalty})`:''}</strong>}

@@ -1,0 +1,29 @@
+import {aspectPenalty,type Card,type Deck} from './model.ts';
+import {buildDeckGuide} from './deck-guides.ts';
+import type {PracticeNotes} from './play-records.ts';
+
+const label=(card:Card)=>[card.name,card.subtitle].filter(Boolean).join(' — ');
+const bounded=(value:string)=>value.replace(/\{\{([^}]+)\}\}/g,'$1').slice(0,5000);
+
+/** A starting checklist derived only from this saved deck and its current catalog text. */
+export function generatedPractice(deck:Deck,byId:ReadonlyMap<string,Card>):PracticeNotes{
+ const walkthrough=buildDeckGuide(deck,byId);const guidePlan=walkthrough.sections.find(section=>section.title==='Game plan')?.body??'';
+ const leader=byId.get(deck.leader),base=byId.get(deck.base),pairReady=!!leader&&!!base;
+ const rows=deck.deck.flatMap(entry=>{const card=byId.get(entry.id);if(!card)return [];const penalty=pairReady?aspectPenalty(card,leader,base):0;return [{card,count:entry.count,cost:card.cost===null?null:card.cost+penalty,penalty}]});
+ const total=deck.deck.reduce((n,row)=>n+row.count,0),known=rows.reduce((n,row)=>n+row.count,0);
+ const sum=(test:(row:typeof rows[number])=>boolean)=>rows.filter(test).reduce((n,row)=>n+row.count,0);
+ const examples=(group:typeof rows,limit=4)=>[...group].sort((a,b)=>b.count-a.count||(a.cost??99)-(b.cost??99)||a.card.name.localeCompare(b.card.name)).slice(0,limit).map(row=>`${row.count}× ${label(row.card)}${row.cost===null?'':` (${row.cost} resources)`}`).join('\n');
+ const cheap=rows.filter(row=>row.card.type==='Unit'&&row.cost!==null&&row.cost<=2),follow=rows.filter(row=>row.cost!==null&&row.cost>=3&&row.cost<=4),expensive=rows.filter(row=>row.cost!==null&&row.cost>=6),offAspect=rows.filter(row=>row.penalty>0);
+ const ground=sum(row=>row.card.type==='Unit'&&/ground/i.test(row.card.arena)),space=sum(row=>row.card.type==='Unit'&&/space/i.test(row.card.arena));
+ const costs=pairReady?'Costs below include baseline aspect penalties. Card abilities and alternate costs may change payment.':'Costs below are printed costs; select a leader and base to account for aspect penalties.';
+ const unresolved=known<total?`\n${total-known} main-deck copies are not in the catalog and are excluded from these counts.`:'';
+ const keywordCards=['Ambush','Sentinel','Restore','Saboteur'].map(keyword=>{const matches=rows.filter(row=>row.card.keywords.some(k=>k.toLowerCase()===keyword.toLowerCase()));return matches.length?`${keyword} references: ${matches.slice(0,3).map(row=>label(row.card)).join('; ')}. Read the card text for conditions.`:''}).filter(Boolean);
+ const sideboard=deck.sideboard.slice(0,8).map(row=>`${row.count}× ${byId.get(row.id)?label(byId.get(row.id)!):row.id}`).join('\n');
+ return {
+  deckId:deck.uid,
+  plan:bounded(`${deck.name}\n\n${guidePlan}\n\n${leader?label(leader):'Leader not selected'} · ${base?label(base):'Base not selected'}${base?.hp!==null&&base?.hp!==undefined?` · ${base.hp} base HP`:''}\n\n${total} main-deck copies · ${ground} ground-unit copies · ${space} space-unit copies.${unresolved}\n\nBefore acting: count ready attackers, check remaining base HP, then compare attacking, developing a unit and taking initiative.${leader?.cost!==null&&leader?.cost!==undefined?`\nDeployment checkpoint: printed leader cost ${leader.cost}. Read its deployment condition before using it.`:''}${leader?.text?`\n\nLeader front-side reminder\n${leader.text.slice(0,1000)}`:''}${base?.text?`\n\nBase reminder\n${base.text.slice(0,600)}`:''}${deck.notes.trim()?`\n\nYour deck details notes\n${deck.notes.trim().slice(0,1700)}`:''}`),
+  opening:bounded(`${costs}\n\n${cheap.length?`Possible first-round units\n${examples(cheap)}\n\nLook for a playable opening unit and a follow-up, with two cards you can afford to resource.`:'No known units in this list cost two or less at baseline. Check cheap setup effects or alternate costs before keeping an opening hand.'}\n\n${follow.length?`Three- and four-resource follow-ups\n${examples(follow)}`:'No known three- or four-resource plays were found. Check the list before assuming a smooth curve.'}\n\nConsider a mulligan if the hand has neither an opening play nor a realistic follow-up. Choose your first arena after checking the opposing leader and base.`),
+  resources:bounded(`Before choosing a resource, keep one useful play for this round and a follow-up for the next. Recheck your expected leader deployment round.\n\n${expensive.length?`Expensive cards to evaluate\n${examples(expensive)}\nThese are options to resource early when they are unlikely to be playable soon; keep a finisher if your opening is already covered.`:'This list has no known six-or-more-resource cards at baseline. Compare duplicate and situational cards against the next two rounds instead.'}${offAspect.length?`\n\nCards with baseline aspect penalties\n${examples(offAspect)}\nCheck whether a printed ability or alternate payment changes that cost.`:''}\n\nAvoid automatically resourcing your only answer in an arena. Keep a card with poor current targets only when you expect those targets soon. These are prompts, not automatic card choices.`),
+  matchups:bounded(`Against early pressure: prioritize a playable unit in the threatened arena and avoid a hand full of expensive cards.\n\nAgainst a slower start: develop pressure while preserving a follow-up in case your board is removed.\n\nSpace checkpoint: ${space?`${space} space-unit copies are in this list. Keep a timely space play if that arena matters.`:'No known space units are in this list. Check your events for applicable targets, or plan whether you can race.'}\n\n${keywordCards.length?keywordCards.join('\n')+'\n\n':''}${sideboard?`Saved sideboard\n${sideboard}\nSwap cards by the problem you actually saw; do not change the total blindly.`:'No sideboard cards are saved. Record which effects you wish you could bring in.'}\n\nAfter the game: note your opening play, the turn you fell behind, and which cards repeatedly became resources.`),
+ };
+}

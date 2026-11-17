@@ -1,6 +1,7 @@
 export type Release={version:string;date:string;title:string;changes:string[]};
 // Add each published release here. The Updates page displays the latest five.
 export const releases:Release[]=[
+ {version:'2.9.1',date:'2026-11-16',title:'See your cards, keep your game plan close',changes:['Choose rarity or custom card highlights by arena, type, cost, Premier eligibility, ownership or saved-deck membership.','Choose outline, corner, ribbon or glow overlays.','Refreshed the card detail screen and brighter, cleaner logo. Version information moved to the bottom of Options.','Added artwork and one-card views to card selection and supporting lists.','Prefilled practice plans for saved decks and fresh matches while preserving your edited notes.']},
  {version:'2.9.0',date:'2026-11-16',title:'Your collection, ready for game night',changes:[
   'Daily catalog checks with a last-good snapshot, visible refresh status, and official news links.',
   'Find saved and starter decks closest to what you own, and owned alternatives for missing cards.',

@@ -2,6 +2,7 @@
 import {useState} from 'react';
 import {X,Download,ArrowUpRight} from 'lucide-react';
 import Modal from './modal';
+import CardList,{CardArtButton} from './card-list';
 import {starterDecks,starterSource,sameDeckList,type StarterDeck} from '../lib/starter-decks';
 import type {Card,Deck} from '../lib/model';
 
@@ -17,9 +18,9 @@ export default function StarterDeckPicker({byId,decks,onImport,onClose,initialId
   <p>Choose from 20 official starters for single-leader play. Import adds a deck to My decks; your collection quantities stay unchanged.</p>
   <label>Starter deck<select autoFocus value={id} onChange={e=>{setId(e.target.value);setConfirmed(false);setError('')}}><option value="">Choose a starter…</option>{[...new Set(starterDecks.map(d=>d.set))].map(set=><optgroup key={set} label={set}>{starterDecks.filter(d=>d.set===set).map(d=><option key={d.id} value={d.id}>{d.name} · {set}</option>)}</optgroup>)}</select></label>
   {selected&&<div className="starter-preview" key={selected.id}>
-   <div className="starter-commanders">{([['Leader',selected.leader],['Base',selected.base]] as const).map(([label,id])=><div key={label}>{byId.get(id)?.image&&<img src={byId.get(id)!.image} alt={cardName(id)}/>}<small>{label}</small><strong>{cardName(id)}</strong></div>)}</div>
+   <div className="starter-commanders">{([['Leader',selected.leader],['Base',selected.base]] as const).map(([label,id])=><div key={label}><CardArtButton card={byId.get(id)}/><small>{label}</small><strong>{cardName(id)}</strong></div>)}</div>
    <p><strong>{selected.name} · {selected.set} Starter</strong><br/>50 main deck cards · 0 sideboard · 1 leader · 1 base</p>
-   <details className="starter-card-list"><summary>Preview all {selected.deck.length} card entries</summary><ul>{selected.deck.map(entry=><li key={entry.id}><b>{entry.count}×</b><span>{cardName(entry.id)}<small>{entry.id}</small></span></li>)}</ul></details>
+   <details className="starter-card-list"><summary>Preview all {selected.deck.length} card entries</summary><CardList byId={byId} entries={selected.deck} label="Starter main deck"/></details>
    {unavailable&&<p role="alert">Some cards are missing from this catalog. Import is unavailable until the catalog is updated.</p>}
    {existing?<p className="starter-existing">This exact list is already saved as <strong>{existing.name}</strong>. Open it below.</p>:<label className="starter-confirm"><input type="checkbox" checked={confirmed} onChange={e=>setConfirmed(e.target.checked)}/><span>I reviewed this starter and want to add it as a deck.</span></label>}
    {error&&<p role="alert">{error}</p>}
