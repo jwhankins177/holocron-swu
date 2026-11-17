@@ -25,5 +25,7 @@ dialog .detail-art{justify-content:flex-start;align-self:start;position:sticky;t
 /* Paint the ring above image descendants, not behind their opaque artwork. */
 .art[data-highlight=outline],.card-preview-art[data-highlight=outline],.art[data-highlight=glow],.card-preview-art[data-highlight=glow]{outline:none}
 [data-highlight]>.art-face,[data-highlight]>img{position:relative;z-index:0}
-[data-highlight=outline]::after,[data-highlight=glow]::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border:3px solid var(--highlight-color);border-radius:inherit;box-sizing:border-box}
-[data-highlight=glow]::after{border-width:2px;box-shadow:inset 0 0 12px color-mix(in srgb,var(--highlight-color) 45%,transparent)}
+[data-highlight=outline]::after,[data-highlight=glow]::after{content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border:3px solid color-mix(in srgb,var(--highlight-color) 78%,#fff);border-radius:inherit;box-sizing:border-box;box-shadow:inset 0 0 7px color-mix(in srgb,var(--highlight-color) 65%,transparent)}
+[data-highlight=glow]::after{border-width:3px;box-shadow:inset 0 0 15px color-mix(in srgb,var(--highlight-color) 75%,transparent)}
+.art[data-highlight=outline],.card-preview-art[data-highlight=outline]{box-shadow:0 0 8px color-mix(in srgb,var(--highlight-color) 48%,transparent)}
+.art[data-highlight=glow],.card-preview-art[data-highlight=glow]{box-shadow:0 0 18px color-mix(in srgb,var(--highlight-color) 65%,transparent)}
