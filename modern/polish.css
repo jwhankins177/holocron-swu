@@ -29,3 +29,10 @@ dialog .detail-art{justify-content:flex-start;align-self:start;position:sticky;t
 [data-highlight=glow]::after{border-width:6px;box-shadow:inset 0 0 0 1px #ffffffb3,inset 0 0 24px var(--highlight-color)}
 .art[data-highlight=outline],.card-preview-art[data-highlight=outline]{box-shadow:0 0 12px color-mix(in srgb,var(--highlight-color) 85%,transparent)}
 .art[data-highlight=glow],.card-preview-art[data-highlight=glow]{box-shadow:0 0 24px var(--highlight-color)}
+
+/* Give the home badge an even inset and center its two-line wordmark. */
+.workspace-navigation .brand{padding:10px 16px;gap:12px;align-items:center;justify-content:center;text-align:center;border-radius:12px;flex-shrink:0}
+.workspace-navigation .brand>span:last-child{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;line-height:1.15}
+.workspace-navigation .brand-icon{flex-shrink:0;width:44px;height:44px}
+.workspace-navigation .brand small{display:block;margin-top:5px;line-height:1.4;white-space:nowrap}
+@media(max-width:700px){.workspace-navigation .brand{padding:10px 6px;gap:6px;font-size:12px;letter-spacing:.4px;flex-shrink:1}.workspace-navigation .brand-icon{width:34px;height:34px}.workspace-navigation .brand small{font-size:5.5px;letter-spacing:.2px;margin-top:4px}}

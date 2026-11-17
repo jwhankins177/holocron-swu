@@ -1,6 +1,7 @@
 export type Release={version:string;date:string;title:string;changes:string[]};
 // Add each published release here. The Updates page displays the latest five.
 export const releases:Release[]=[
+ {version:'2.9.5',date:'2026-11-16',title:'Balanced logo spacing',changes:['Added comfortable padding around the home logo and centered the icon, title and subtitle on desktop and mobile.']},
  {version:'2.9.4',date:'2026-11-16',title:'High-visibility card highlights',changes:['Doubled outline thickness, added a strong inner halo, and replaced muted highlight colors with vivid colors matched to the legend.']},
  {version:'2.9.3',date:'2026-11-16',title:'Brighter card borders',changes:['Brighter colored card outlines with a subtle halo, plus a stronger Soft glow option.']},
  {version:'2.9.2',date:'2026-11-16',title:'Card highlight layering',changes:['Card outlines and glow rings now render above the artwork, keeping the complete border visible without blocking card controls.']},
